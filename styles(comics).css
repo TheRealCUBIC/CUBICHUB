@@ -177,7 +177,12 @@ main {
 
 main p {
     font-size: 1.2rem;
-    margin-top: 13rem;
+    margin-top: 1rem;
+    text-align: start;
+}
+
+.text {
+    padding: 5rem;
 }
 
 /* Footer styles */
