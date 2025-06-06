@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="assests/images/favicon.png" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blank Canvas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <meta name="description" content="Explore creative projects from shows and comics to games and mods BUT 3D!!!">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        canvas {
+            display: block;
+            cursor: grab;
+        }
+
+        /* Cursor change to indicate interactivity */
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        #instructions {
+            position: absolute;
+            /* Add position absolute to place it freely */
+            bottom: 20px;
+            /* Position from bottom */
+            left: 20px;
+            /* Position from left */
+            font-size: 0.7em;
+            margin-top: 15px;
+            /* Adjusted margin-top for top-left positioning */
+            color: #ccc;
+            text-align: left;
+            /* Align text to the left */
+            width: auto;
+            /* Adjust width to content */
+            padding: 10px;
+            /* Add some padding */
+            background-color: rgba(0, 0, 0, 0);
+            /* Semi-transparent background for readability */
+            border-radius: 8px;
+            /* Rounded corners */
+        }
+
+        #loading-text {
+            position: absolute;
+            /* Keep loading text centered */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5em;
+        }
+
+        #fps-counter {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 1.2em;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 100;
+            /* Ensure it's above other elements */
+        }
+
+        #version-text {
+            /* New CSS for the version text */
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: white;
+            font-size: 1em;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+
+        #darkness-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            opacity: 0;
+            /* Initially transparent */
+            pointer-events: none;
+            /* Allows clicks to pass through */
+            z-index: 99;
+            /* Below loading screen, above game content */
+            transition: opacity 0.5s ease-out;
+            /* Smooth transition for darkness */
+        }
+
+        #warning-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 2.5em;
+            text-align: center;
+            opacity: 0;
+            /* Initially transparent */
+            z-index: 101;
+            /* Above darkness overlay, below loading screen */
+            pointer-events: none;
+            /* Allows clicks to pass through */
+            transition: opacity 0.5s ease-out;
+            /* Smooth transition for text */
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading-screen">
+        <span id="loading-text">Welcome to Blank Canvas :)</span>
+        <div id="instructions">
+            Click to enter!
+            <br>
+            Use Arrow Keys or WASD to move
+            <br>
+            Press ESC to release mouse
+            <br>
+            Hold SHIFT for Sprint
+            <br>
+            Hold CTRL for Crouch
+            <br>
+            Press SPACE to Jump
+            <br>
+        </div>
+    </div>
+    <div id="fps-counter">FPS: 0</div> <!-- FPS counter element -->
+    <div id="version-text">alpha A6625</div> <!-- New version text element -->
+    <div id="darkness-overlay"></div> <!-- Overlay for screen darkening -->
+    <div id="warning-text"></div> <!-- Text for ominous messages -->
+
+    <script type="module">
+        let scene, camera, renderer;
+        let cameraYaw = 0; // Stores the current yaw (left/right) rotation of the camera
+        let cameraPitch = 0; // Stores the current pitch (up/down) rotation of the camera
+        const mouseSensitivity = 0.002; // Controls how fast the camera rotates with mouse movement
+        const baseMoveSpeed = 50.0; // Base speed in units per second
+
+        // Define speed multipliers
+        const sprintMultiplier = 1.5;
+        const normalMultiplier = 30.0 / baseMoveSpeed;
+        const crouchMultiplier = 0.5;
+        const flySpeedMultiplier = 1.0; // Flying speed multiplier relative to baseMoveSpeed
+
+        // Define camera heights
+        const normalCameraHeight = 5.0;
+        const crouchCameraHeight = 2.0;
+
+        let actualMoveSpeed; // This will be baseMoveSpeed * deltaTime * currentSpeedMultiplier
+
+        const loadingScreen = document.getElementById('loading-screen');
+        let isPointerLocked = false; // Tracks whether pointer lock is active
+        const keysPressed = {}; // Object to keep track of currently pressed keys
+
+        let stars; // Variable to hold the star particle system
+        const clock = new THREE.Clock(); // Clock for time-based animations like twinkling
+
+        let groundSize; // groundSize needs to be accessible for calculations
+
+        let fpsCounterElement; // Element to display FPS
+        let lastFrameTime = performance.now(); // Time of the last animation frame
+
+        // Jumping variables
+        let isJumping = false;
+        let verticalVelocity = 0;
+        const jumpStrength = 25;
+        const gravity = -9.8 * 5;
+
+        // New variable for the current target base height (can be normal or crouch)
+        let currentBaseCameraHeight = normalCameraHeight;
+
+        // Flight variables
+        let isFlying = false;
+        let lastSpacePressTime = 0; // Timestamp of the last *non-repeated* space keydown
+        let spacebarHeld = false; // Flag to indicate if spacebar is currently held down
+        const doubleTapThreshold = 300; // milliseconds for double-tap detection
+
+        // Boundary variables
+        const boundaryRadius = 600; // Distance from center where boundary effects begin (for max of X, Y or Z)
+        const slowdownStartDistance = 50; // Distance beyond boundary where slowdown begins (600 + 50 = 650)
+        const maxSlowdownDistance = 100; // Distance beyond slowdownStartDistance where speed becomes 0 (650 + 100 = 750)
+        const fadeEffectStartDistance = 0; // Distance beyond boundary where darkness/text starts (starts immediately at 600)
+        const maxFadeDistance = 150; // Distance beyond fadeEffectStartDistance where darkness/text is full (600 + 150 = 750)
+        const BOBSentences = [
+            "there is no escape",
+            "god is watching",
+            "prove yourself",
+            "no",
+            "you are not alone",
+            "give up",
+            ":)",
+            "too late",
+            "do not fail",
+            "i'm watching",
+            "lose all hope",
+            "only darkness awaits",
+            "are you lost?",
+            "still trying?",
+            "nope",
+            "h-hell nah",
+            "bruh"
+        ];
+        let darknessOverlayElement;
+        let warningTextElement;
+        let currentBOBSentence = "";
+        let lastSentenceChangeTime = 0;
+        const sentenceDisplayDuration = 3000; // How long each sentence is potentially visible
+        const sentenceChangeInterval = 4000; // How often to change sentence (including fade time)
+
+        let isStoppedInBoundary = false; // Flag to indicate if player has stopped due to boundary
+        let stopTime = 0; // Timestamp when player stopped moving in boundary
+
+
+        window.onload = function () {
+            init();
+            animate();
+            // Ensure loading screen is always visible until pointer lock is engaged
+            loadingScreen.style.display = 'flex';
+            loadingScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            loadingScreen.style.pointerEvents = 'auto'; // Allow clicks to engage pointer lock
+        };
+
+        function init() {
+            // Scene: The container for all 3D objects, lights, and cameras
+            scene = new THREE.Scene();
+            // Set a dark blue color for the night sky background
+            scene.background = new THREE.Color(0x0A0A2A); // Dark navy blue for night
+
+            // Camera: Defines what is visible in the scene and how it's projected
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1500); // Adjusted far clipping plane
+            camera.position.set(0, normalCameraHeight, 0); // Start at normal eye level on the ground for a first-person view
+
+            // Renderer: Takes the scene and camera and renders them to the screen
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            // Enable shadow map rendering for realistic shadows
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+            document.body.appendChild(renderer.domElement);
+
+            // Get boundary and warning text elements
+            darknessOverlayElement = document.getElementById('darkness-overlay');
+            warningTextElement = document.getElementById('warning-text');
+
+            // Lighting
+            // HemisphereLight: Simulates natural light from the sky and reflected light from the ground
+            // Sky color (top - pale moonlight), ground color (bottom - very dim, reflected light), intensity
+            const hemiLight = new THREE.HemisphereLight(0xADD8E6, 0x1A1A3A, 0.5); // Pale blue for sky, very dark blue for ground, lower intensity
+            scene.add(hemiLight);
+
+            // Directional light: Simulates moonlight, coming from a specific direction
+            const directionalLight = new THREE.DirectionalLight(0xC0C0C0, 0.3); // Silvery white moonlight, very dim
+            // Position the directional light from where the moon will be
+            directionalLight.position.set(100, 200, 100);
+            directionalLight.castShadow = true; // Enable shadow casting from this light
+            directionalLight.shadow.mapSize.width = 2048; // Increase shadow map size for better quality
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 500;
+            directionalLight.shadow.camera.left = -200;
+            directionalLight.shadow.camera.right = 200;
+            directionalLight.shadow.camera.top = 200;
+            directionalLight.shadow.camera.bottom = -200;
+            scene.add(directionalLight);
+
+            // Ground: A flat white plane - Set to 750x750
+            groundSize = 750; // Set to 750
+            const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
+            groundGeometry.rotateX(-Math.PI / 2); // Rotate the plane to lie flat on the XZ plane (like a floor)
+
+            // A white material for the ground
+            const groundMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFFFF }); // White ground
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.receiveShadow = true; // Allow the ground to receive shadows from other objects
+            scene.add(ground);
+
+            // Add Plus Sign Pattern - Connected Grid (individual meshes)
+            const plusSignSpacing = 20;
+            const crossLength = 8;
+            const crossWidth = 1;
+            const crossHeight = 0.5;
+            const connectingBarWidth = 0.5;
+            const connectingBarHeight = 0.2;
+            const connectingBarLength = plusSignSpacing - crossLength;
+
+            const numPlusSignsX = Math.floor(groundSize / plusSignSpacing) + 1;
+            const numPlusSignsZ = Math.floor(groundSize / plusSignSpacing) + 1;
+            const startX = -groundSize / 2 + plusSignSpacing / 2;
+            const startZ = -groundSize / 2 + plusSignSpacing / 2;
+
+            const patternMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 }); // Black color for the pattern
+
+            // Loop through each grid cell to place crosses and connecting bars
+            for (let i = 0; i < numPlusSignsX; i++) {
+                for (let j = 0; j < numPlusSignsZ; j++) {
+                    const currentX = startX + i * plusSignSpacing;
+                    const currentZ = startZ + j * plusSignSpacing;
+
+                    // 1. Place the central cross (thicker part)
+                    const plusSign = createCross(crossHeight, crossWidth, crossLength, patternMaterial);
+                    plusSign.position.set(currentX, 0, currentZ);
+                    scene.add(plusSign);
+
+                    // 2. Place horizontal connecting bar to the right (if not the last column)
+                    if (i < numPlusSignsX - 1) {
+                        const horizontalBar = new THREE.Mesh(
+                            new THREE.BoxGeometry(connectingBarLength, connectingBarHeight, connectingBarWidth),
+                            patternMaterial
+                        );
+                        // Position it exactly between the current cross and the next one
+                        horizontalBar.position.set(currentX + crossLength / 2 + connectingBarLength / 2, 0, currentZ);
+                        horizontalBar.castShadow = true;
+                        scene.add(horizontalBar);
+                    }
+
+                    // 3. Place vertical connecting bar downwards (if not the last row)
+                    if (j < numPlusSignsZ - 1) {
+                        const verticalBar = new THREE.Mesh(
+                            new THREE.BoxGeometry(connectingBarWidth, connectingBarHeight, connectingBarLength),
+                            patternMaterial
+                        );
+                        // Position it exactly between the current cross and the next one
+                        verticalBar.position.set(currentX, 0, currentZ + crossLength / 2 + connectingBarLength / 2);
+                        verticalBar.castShadow = true;
+                        scene.add(verticalBar);
+                    }
+                }
+            }
+
+            // Add Twinkling Stars
+            const starGeometry = new THREE.BufferGeometry();
+            const starVertices = [];
+            const starOpacities = [];
+            const starSizes = [];
+            const starTwinkleOffsets = []; // New attribute for individual twinkle offset
+            const numberOfStars = 5000;
+            const starfieldRadius = 700; // Radius of the spherical starfield
+
+            for (let i = 0; i < numberOfStars; i++) {
+                // Generate random spherical coordinates for star positions
+                const u = Math.random();
+                const v = Math.random();
+                const theta = 2 * Math.PI * u; // Azimuthal angle (around Y-axis)
+                const phi = Math.acos(2 * v - 1); // Polar angle (from Y-axis)
+
+                // Convert spherical to Cartesian coordinates (standard)
+                const x = starfieldRadius * Math.sin(phi) * Math.cos(theta);
+                const y = starfieldRadius * Math.cos(phi); // Corrected Y-coordinate
+                const z = starfieldRadius * Math.sin(phi) * Math.sin(theta); // Corrected Z-coordinate
+
+                starVertices.push(x, y, z);
+                starOpacities.push(0.5 + Math.random() * 0.5); // Random initial opacity (0.5 to 1.0)
+                starSizes.push(0.5 + Math.random() * 1.5); // Random initial size (0.5 to 2.0)
+                starTwinkleOffsets.push(Math.random() * Math.PI * 2); // Random offset for twinkling phase
+            }
+
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            starGeometry.setAttribute('opacity', new THREE.Float32BufferAttribute(starOpacities, 1));
+            starGeometry.setAttribute('size', new THREE.Float32BufferAttribute(starSizes, 1));
+            starGeometry.setAttribute('twinkleOffset', new THREE.Float32BufferAttribute(starTwinkleOffsets, 1)); // Set the new attribute
+
+            // ShaderMaterial for twinkling effect
+            const starMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0.0 },
+                    pointSize: { value: 2.0 }
+                },
+                vertexShader: `
+                    attribute float opacity;
+                    attribute float size;
+                    attribute float twinkleOffset;
+                    uniform float time;
+                    uniform float pointSize;
+
+                    varying float vOpacity;
+
+                    void main() {
+                        float twinkleFactor = sin(time * 2.0 + twinkleOffset) * 0.5 + 0.5;
+                        vOpacity = opacity * twinkleFactor;
+
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        gl_PointSize = pointSize * size * (100.0 / -mvPosition.z);
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `,
+                fragmentShader: `
+                    varying float vOpacity;
+
+                    void main() {
+                        float r = 0.0;
+                        vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+                        r = dot(cxy, cxy);
+                        if (r > 1.0) {
+                            discard;
+                        }
+
+                        gl_FragColor = vec4(1.0, 1.0, 1.0, vOpacity);
+                    }
+                `,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                transparent: true
+            });
+
+            stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+
+            // Add Moon - using MeshStandardMaterial for realistic appearance and glow
+            const moonGeometry = new THREE.SphereGeometry(20, 64, 64); // Increased segments for smoother sphere
+            const moonMaterial = new THREE.MeshStandardMaterial({
+                color: 0xA9A9A9, // DarkGray for a rocky appearance
+                emissive: 0xFFFFAA, // Light yellow emissive color for glow
+                emissiveIntensity: 0.5, // Intensity of the glow
+                roughness: 0.9, // High roughness for a dull, non-glossy surface
+                metalness: 0.0 // Very low metalness for a non-metallic, rocky body
+            });
+            const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+            moon.position.set(directionalLight.position.x * 2, directionalLight.position.y * 2, directionalLight.position.z * 2);
+            moon.receiveShadow = true;
+            moon.castShadow = true;
+            scene.add(moon);
+
+
+            // Event Listeners for Camera Control, Keyboard Movement, and Window Resizing
+            document.addEventListener('mousemove', onDocumentMouseMove);
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            window.addEventListener('resize', onWindowResize, false);
+
+            // Pointer Lock API setup
+            document.body.addEventListener('click', () => {
+                if (document.pointerLockElement !== renderer.domElement) {
+                    renderer.domElement.requestPointerLock();
+                }
+            });
+
+            document.addEventListener('pointerlockchange', onPointerLockChange);
+            document.addEventListener('mozpointerlockchange', onPointerLockChange);
+            document.addEventListener('webkitpointerlockchange', onPointerLockChange);
+            document.addEventListener('pointerlockerror', onPointerLockError);
+            document.addEventListener('mozpointerlockerror', onPointerLockError);
+            document.addEventListener('webkitpointerlockerror', onPointerLockError);
+
+            // Get FPS counter element
+            fpsCounterElement = document.getElementById('fps-counter');
+        }
+
+        // Function to create a single cross (thicker part of the pattern)
+        function createCross(height, width, length, material) {
+            const crossGroup = new THREE.Group();
+            const horizontalBarGeometry = new THREE.BoxGeometry(length, height, width);
+            const horizontalBar = new THREE.Mesh(horizontalBarGeometry, material);
+            horizontalBar.castShadow = true;
+            crossGroup.add(horizontalBar);
+
+            const verticalBarGeometry = new THREE.BoxGeometry(width, height, length);
+            const verticalBar = new THREE.Mesh(verticalBarGeometry, material);
+            verticalBar.castShadow = true;
+            crossGroup.add(verticalBar);
+
+            return crossGroup;
+        }
+
+        // Handles window resizing to keep the camera aspect ratio and renderer size correct
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Handles mouse movement for first-person camera control
+        function onDocumentMouseMove(event) {
+            if (isPointerLocked) {
+                const deltaX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+                const deltaY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+
+                cameraYaw -= deltaX * mouseSensitivity;
+                cameraPitch -= deltaY * mouseSensitivity;
+
+                cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
+            }
+        }
+
+        // Handles key presses for camera movement
+        function onKeyDown(event) {
+            // Keys to prevent default browser behavior for
+            const gameControlKeys = [
+                'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD',
+                'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight',
+                'ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight'
+            ];
+
+            if (gameControlKeys.includes(event.code)) {
+                event.preventDefault(); // Prevent default browser action for these keys
+            }
+
+            keysPressed[event.code] = true; // Always track if key is pressed for continuous movement
+
+            if (event.code === 'Space') {
+                if (!event.repeat) { // This is the initial keydown event (not a repeat from holding)
+                    spacebarHeld = true; // Mark spacebar as held down for continuous flight control
+                    const currentTime = performance.now();
+
+                    // Check for double-tap to toggle flight mode
+                    if (currentTime - lastSpacePressTime < doubleTapThreshold && lastSpacePressTime !== 0) {
+                        isFlying = !isFlying; // Toggle flight
+                        verticalVelocity = 0; // Stop any current vertical movement on entering flight
+                        isJumping = false; // Ensure not in jumping state
+
+                        // Reset lastSpacePressTime immediately after a successful double-tap
+                        lastSpacePressTime = 0;
+                    } else {
+                        // This is the first tap of a potential double-tap, or a single jump attempt
+                        lastSpacePressTime = currentTime;
+
+                        // If not flying, and on the ground, allow a jump
+                        if (!isFlying && !isJumping && Math.abs(camera.position.y - currentBaseCameraHeight) < 0.1) {
+                            isJumping = true;
+                            verticalVelocity = jumpStrength;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Handles key releases for camera movement
+        function onKeyUp(event) {
+            keysPressed[event.code] = false; // Mark key as released
+            if (event.code === 'Space') {
+                spacebarHeld = false; // Mark spacebar as no longer held
+                // The lastSpacePressTime is handled by the double-tap logic in onKeyDown
+                // and should not be cleared here unless a new tap sequence begins.
+            }
+        }
+
+        // Handles changes in pointer lock status
+        function onPointerLockChange() {
+            if (document.pointerLockElement === renderer.domElement ||
+                document.mozPointerLockElement === renderer.domElement ||
+                document.webkitPointerLockElement === renderer.domElement) {
+                isPointerLocked = true;
+                loadingScreen.style.display = 'none';
+                renderer.domElement.style.cursor = 'none';
+            } else {
+                isPointerLocked = false;
+                loadingScreen.style.display = 'flex'; // Show loading screen (instructions) when unlocked
+                renderer.domElement.style.cursor = 'grab';
+            }
+        }
+
+        // Handles pointer lock errors
+        function onPointerLockError() {
+            console.error('Pointer Lock Error: Unable to lock pointer.');
+            loadingScreen.style.display = 'flex';
+            loadingScreen.querySelector('#instructions').textContent = 'Pointer Lock failed. Try clicking again or check browser settings.';
+            renderer.domElement.style.cursor = 'grab';
+        }
+
+        // Animation loop: Continuously renders the scene and updates camera orientation and position
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Update FPS counter
+            const currentTime = performance.now();
+            const deltaTime = (currentTime - lastFrameTime) / 1000; // Convert to seconds
+            const fps = 1 / deltaTime;
+            if (fpsCounterElement) {
+                fpsCounterElement.textContent = `FPS: ${Math.round(fps)}`;
+            }
+            lastFrameTime = currentTime;
+
+            // Determine current speed multiplier
+            let currentSpeedMultiplier = normalMultiplier;
+            let targetBaseHeight = normalCameraHeight; // The desired ground level height
+
+            if (keysPressed['ShiftLeft'] || keysPressed['ShiftRight']) {
+                currentSpeedMultiplier = sprintMultiplier;
+            } else if (keysPressed['ControlLeft'] || keysPressed['ControlRight']) {
+                currentSpeedMultiplier = crouchMultiplier;
+                targetBaseHeight = crouchCameraHeight;
+            }
+
+            actualMoveSpeed = baseMoveSpeed * deltaTime * currentSpeedMultiplier;
+
+            // Calculate effective boundary distance using the maximum of absolute X, Y, and Z
+            const effectiveBoundaryDistance = Math.max(
+                Math.abs(camera.position.x),
+                Math.abs(camera.position.z),
+                Math.abs(camera.position.y)
+            );
+
+            let currentSpeedLimitFactor = 1; // Factor to multiply actualMoveSpeed by
+            let currentDarknessOpacity = 0;
+            let currentWarningTextOpacity = 0;
+
+            if (effectiveBoundaryDistance > boundaryRadius) {
+                let distanceBeyondBoundary = effectiveBoundaryDistance - boundaryRadius;
+
+                // Speed Dampening calculation
+                if (distanceBeyondBoundary > slowdownStartDistance) {
+                    let progress = Math.min(1, (distanceBeyondBoundary - slowdownStartDistance) / (maxSlowdownDistance - slowdownStartDistance));
+                    currentSpeedLimitFactor = 1 - progress;
+                }
+                actualMoveSpeed *= currentSpeedLimitFactor; // Apply speed dampening here
+
+                // Darkness and Text Fade calculation
+                if (distanceBeyondBoundary > fadeEffectStartDistance) {
+                    currentDarknessOpacity = Math.min(1, (distanceBeyondBoundary - fadeEffectStartDistance) / (maxFadeDistance - fadeEffectStartDistance));
+                    currentWarningTextOpacity = currentDarknessOpacity; // Text opacity matches darkness
+                }
+
+                // Check if the player is actively trying to move but effectively stopped by the boundary
+                const isTryingToMove = (keysPressed['ArrowUp'] || keysPressed['KeyW'] || keysPressed['ArrowDown'] || keysPressed['KeyS'] || keysPressed['ArrowLeft'] || keysPressed['KeyA'] || keysPressed['ArrowRight'] || keysPressed['KeyD']);
+
+                // Refined 'isStoppedInBoundary' logic
+                // Player is considered "stopped" if they are deep enough into the boundary slowdown zone
+                // AND their current speed limit factor is effectively zero.
+                // It remains true until they move back into the safe zone.
+                if (currentSpeedLimitFactor < 0.01 && effectiveBoundaryDistance >= (boundaryRadius + slowdownStartDistance)) {
+                    if (!isStoppedInBoundary) {
+                        isStoppedInBoundary = true;
+                        stopTime = currentTime;
+                        // Select new sentence only when first stopping
+                        const randomIndex = Math.floor(Math.random() * BOBSentences.length);
+                        currentBOBSentence = BOBSentences[randomIndex];
+                    }
+                    darknessOverlayElement.style.opacity = 1; // Force full darkness
+                    warningTextElement.style.opacity = 1; // Force full text visibility
+                    warningTextElement.textContent = currentBOBSentence; // Display the fixed ominous sentence
+                } else {
+                    // Reset isStoppedInBoundary only if they move back inside the safe zone,
+                    // or if they are no longer in the deep slowdown zone / not completely stopped by boundary.
+                    if (effectiveBoundaryDistance < boundaryRadius || currentSpeedLimitFactor > 0.01) {
+                        isStoppedInBoundary = false;
+                        stopTime = 0; // Reset stop time if no longer stopped
+                    }
+                    // Apply calculated opacities (for gradual fade outside of full stop)
+                    darknessOverlayElement.style.opacity = currentDarknessOpacity;
+                    warningTextElement.style.opacity = currentWarningTextOpacity;
+                    if (currentWarningTextOpacity === 0 && warningTextElement.textContent !== "") {
+                        warningTextElement.textContent = ""; // Clear text when opacity is 0
+                        currentBOBSentence = "";
+                        lastSentenceChangeTime = 0; // Reset timer
+                    } else if (currentWarningTextOpacity > 0 && currentTime - lastSentenceChangeTime > sentenceChangeInterval) {
+                        const randomIndex = Math.floor(Math.random() * BOBSentences.length);
+                        currentBOBSentence = BOBSentences[randomIndex];
+                        warningTextElement.textContent = currentBOBSentence;
+                        lastSentenceChangeTime = currentTime;
+                    }
+                }
+
+                // Teleportation logic
+                if (isStoppedInBoundary && currentTime - stopTime > 2000) { // 2 seconds delay
+                    // Teleport back to start
+                    camera.position.set(0, normalCameraHeight, 0);
+                    cameraYaw = 0;
+                    cameraPitch = 0;
+                    verticalVelocity = 0;
+                    isJumping = false;
+                    isFlying = false; // Turn off flight mode
+                    spacebarHeld = false; // Ensure spacebar held is false after teleport
+
+                    // Reset all boundary effects
+                    darknessOverlayElement.style.opacity = 0;
+                    warningTextElement.style.opacity = 0;
+                    warningTextElement.textContent = "";
+                    currentBOBSentence = "";
+                    lastSentenceChangeTime = 0;
+                    isStoppedInBoundary = false; // Crucial to prevent immediate re-trigger
+                    stopTime = 0; // Reset stop time
+                }
+
+            } else {
+                // Player is within the safe zone, reset all boundary effects
+                darknessOverlayElement.style.opacity = 0;
+                warningTextElement.style.opacity = 0;
+                warningTextElement.textContent = ""; // Clear text
+                currentBOBSentence = "";
+                lastSentenceChangeTime = 0; // Reset timer
+                isStoppedInBoundary = false; // Ensure this is false
+                stopTime = 0; // Reset stop time
+            }
+
+
+            if (isFlying) {
+                // In flight mode, vertical movement is controlled by Space/Ctrl directly
+                if (spacebarHeld) { // Use the spacebarHeld flag for continuous ascent
+                    camera.position.y += baseMoveSpeed * flySpeedMultiplier * deltaTime;
+                } else if (keysPressed['ControlLeft'] || keysPressed['ControlRight']) {
+                    camera.position.y -= baseMoveSpeed * flySpeedMultiplier * deltaTime;
+                }
+                // No gravity in flight mode
+                verticalVelocity = 0; // Ensure vertical velocity is zero when flying actively
+
+                // Clamp flying height to prevent going too low (e.g., through the ground)
+                camera.position.y = Math.max(0.1, camera.position.y);
+            } else {
+                // Not flying: apply gravity and handle jumping/crouching
+                // Smoothly adjust the current base camera height
+                currentBaseCameraHeight += (targetBaseHeight - currentBaseCameraHeight) * 0.1;
+
+                // Apply gravity to vertical velocity
+                verticalVelocity += gravity * deltaTime;
+
+                // Apply vertical velocity to camera position
+                camera.position.y += verticalVelocity * deltaTime;
+
+                // Landing logic: if camera falls below current base height, set it to base height and stop vertical movement
+                // Use a small epsilon to account for floating point inaccuracies
+                if (camera.position.y <= currentBaseCameraHeight + 0.01) { // Added small epsilon
+                    camera.position.y = currentBaseCameraHeight;
+                    verticalVelocity = 0;
+                    isJumping = false; // Reset jumping state
+                }
+            }
+
+
+            // Update time uniform for twinkling effect in the shader
+            stars.material.uniforms.time.value = clock.getElapsedTime();
+
+            camera.rotation.order = 'YXZ';
+            camera.rotation.y = cameraYaw;
+            camera.rotation.x = cameraPitch;
+
+            // Handle keyboard movement if pointer is locked
+            if (isPointerLocked) {
+                // Get camera's forward direction on the XZ plane
+                const forward = new THREE.Vector3();
+                camera.getWorldDirection(forward);
+                forward.y = 0; // Ignore vertical component for movement speed consistency
+                forward.normalize(); // Ensure constant speed regardless of pitch
+
+                // Get camera's right direction on the XZ plane
+                const right = new THREE.Vector3();
+                right.setFromMatrixColumn(camera.matrix, 0); // Get X-axis of camera (right)
+                right.y = 0; // Ignore vertical component for movement speed consistency
+                right.normalize(); // Ensure constant speed regardless of pitch
+
+                // Apply movement based on keys pressed
+                if (keysPressed['ArrowUp'] || keysPressed['KeyW']) {
+                    camera.position.addScaledVector(forward, actualMoveSpeed);
+                }
+                if (keysPressed['ArrowDown'] || keysPressed['KeyS']) {
+                    camera.position.addScaledVector(forward, -actualMoveSpeed);
+                }
+
+                if (keysPressed['ArrowLeft'] || keysPressed['KeyA']) {
+                    camera.position.addScaledVector(right, -actualMoveSpeed); // Strafe left
+                }
+                if (keysPressed['ArrowRight'] || keysPressed['KeyD']) {
+                    camera.position.addScaledVector(right, actualMoveSpeed); // Strafe right
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>
