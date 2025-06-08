@@ -2,11 +2,351 @@
 <html lang="en">
 
 <head>
-    <link rel="icon" href="assests/images/favicon.png" type="image/x-icon">
+    <link rel="icon" href="assests/images/favicon.webp" type="image/x-icon">
     <title>CUBIC Comics</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles(comics).css">
+    <style>
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('assests/fonts/Minecraft.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 18px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #151515;
+            color: ghostwhite;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(to right, rgb(21, 21, 21), #808080);
+            width: 100%;
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            z-index: 1;
+        }
+
+        .image img {
+            width: 80px;
+            height: auto;
+            border-radius: 5px;
+            margin-right: 1rem;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            font-family: 'Minecraft', cursive;
+            font-size: 3rem;
+            letter-spacing: 0.15rem;
+            color: ghostwhite;
+            margin-right: 1rem;
+            position: relative;
+            top: 6px;
+        }
+
+        .image img:hover {
+            animation: rotate 1.2s forwards;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .social-icons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .social-icons img {
+            width: 75px;
+            height: auto;
+            border-radius: 5px;
+            transition: transform 0.3s ease;
+            margin-left: 0;
+        }
+
+        .Fiverr:hover,
+        .Patreon:hover,
+        .Discord:hover,
+        .Paypal:hover,
+        .Youtube:hover {
+            transform: translateY(-10px);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem 1rem;
+            text-align: center;
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .website-navigation {
+            width: 100%;
+            margin-top: -2.5rem;
+            margin-bottom: 3rem;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 0.5rem 0.5rem;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .website-navigation>div {
+            position: static;
+            top: auto;
+            right: auto;
+            transform: none;
+            flex-shrink: 0;
+        }
+
+        .website-navigation h3 {
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .website-navigation a {
+            text-decoration: none;
+            color: #ffffff;
+            padding: 0.3rem 0.7rem;
+            border-radius: 1.5px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            position: static;
+            z-index: 10;
+            white-space: nowrap;
+            display: block;
+        }
+
+        .website-navigation a:hover {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        main p {
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            text-align: start;
+        }
+
+        .text {
+            padding: 5rem;
+        }
+
+        footer {
+            background: rgb(21, 21, 21);
+            color: whitesmoke;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            flex-wrap: nowrap;
+            margin-top: auto;
+            position: relative;
+        }
+
+        .footer-text {
+            width: 100%;
+            text-align: center;
+            margin-right: 0;
+            margin-left: 0;
+        }
+
+        .version {
+            padding-left: 0;
+            position: absolute;
+            right: 1.5rem;
+            bottom: 1rem;
+            text-align: right;
+            color: rgb(124, 124, 124);
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #151515;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+
+
+        @media (max-width: 1024px) {
+            .header-content {
+                flex-wrap: wrap;
+                justify-content: center;
+                text-align: center;
+            }
+
+            .logo,
+            .social-icons {
+                margin: 0.5rem 0;
+                justify-content: center;
+            }
+
+            .logo {
+                width: 100%;
+            }
+
+            .social-icons {
+                width: 100%;
+                gap: 0.8rem;
+            }
+
+            .website-navigation {
+                justify-content: center;
+                padding: 0.5rem;
+                gap: 0.5rem;
+                margin-top: -1rem;
+            }
+
+            .website-navigation h3 {
+                font-size: 0.8rem;
+            }
+
+            .website-navigation a {
+                padding: 0.3rem 0.6rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            html {
+                font-size: 16px;
+            }
+
+            .image img {
+                width: 50px;
+                height: 50px;
+            }
+
+            .logo-text {
+                font-size: 2.2rem;
+            }
+
+            .social-icons img {
+                width: 60px;
+                height: auto;
+                margin-left: 0.5rem;
+                margin-right: 0.5rem;
+            }
+
+            .website-navigation {
+                gap: 0.8rem;
+                margin-top: -1rem;
+            }
+
+            main p {
+                font-size: 1rem;
+                line-height: 1.6;
+            }
+
+            .text {
+                padding: 2rem;
+            }
+
+            footer {
+                flex-wrap: wrap;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+
+            .footer-text {
+                width: 100%;
+                text-align: center;
+                margin: 0.2rem 0;
+            }
+
+            .version {
+                position: static;
+                right: auto;
+                bottom: auto;
+                width: 100%;
+                text-align: center;
+                margin-top: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            html {
+                font-size: 14px;
+            }
+
+            .image img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .logo-text {
+                font-size: 1.8rem;
+            }
+
+            .social-icons img {
+                width: 50px;
+                height: auto;
+            }
+
+            .website-navigation {
+                margin-top: -0.5rem;
+            }
+
+            .text {
+                padding: 1rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -15,38 +355,37 @@
             <div class="logo">
                 <div class="image">
                     <a href="index.html" target="_self">
-                        <img src="assests/images/header/logo_image.png" alt="(error) image not found" width="70px">
+                        <img src="assests/images/header/logo_image.webp" alt="(error) image not found">
                     </a>
                 </div>
                 <a href="index.html">
-                    <img src="assests/images/header/logo Comics.png" alt="(error) image not found" width="300px">
+                    <span class="logo-text">CUBIC Comics</span>
                 </a>
             </div>
             <div class="social-icons">
+                <div class="Youtube">
+                    <a href="https://www.youtube.com/channel/UCsM3kc7cmzJ92a3A3y2wunw" target="_blank">
+                        <img src="assests/images/header/Youtube.webp" alt="(error) image not found">
+                    </a>
+                </div>
                 <div class="Fiverr">
                     <a href="HUB(error).html">
-                        <img src="assests/images/header/Fiverr.png" alt="(error) image not found" width="75px">
+                        <img src="assests/images/header/Fiverr.webp" alt="(error) image not found">
                     </a>
                 </div>
                 <div class="Patreon">
                     <a href="HUB(error).html" target="_blank">
-                        <img src="assests/images/header/Patreon.png" alt="(error) image not found" width="75px">
+                        <img src="assests/images/header/Patreon.webp" alt="(error) image not found">
                     </a>
                 </div>
                 <div class="Paypal">
                     <a href="https://www.paypal.com/paypalme/TheRealCUBIC?country.x=MA&locale.x=en_US" target="_blank">
-                        <img src="assests/images/header/Paypal_me.jpg" alt="(error) image not found" width="75px">
+                        <img src="assests/images/header/Paypal_me.webp" alt="(error) image not found">
                     </a>
                 </div>
                 <div class="Discord">
                     <a href="HUB(error).html" target="_blank">
-                        <img src="assests/images/header/Discord.png" alt="(error) image not found" width="75px">
-                    </a>
-                </div>
-                <div class="Youtube">
-                    <a href="https://www.youtube.com/channel/UCsM3kc7cmzJ92a3A3y2wunw" target="_blank">
-                        <img src="assests/images/header/Youtube.png" alt="(error) image not found" width="75px">
-
+                        <img src="assests/images/header/Discord.webp" alt="(error) image not found">
                     </a>
                 </div>
             </div>
@@ -55,44 +394,28 @@
     <main>
         <div class="website-navigation">
             <div class="shows">
-                <h3>
-                    <a href="HUB(error).html">shows</a>
-                </h3>
+                <h3><a href="HUB(error).html">shows</a></h3>
             </div>
             <div class="movies">
-                <h3>
-                    <a href="HUB(error).html">movies</a>
-                </h3>
+                <h3><a href="HUB(error).html">movies</a></h3>
             </div>
             <div class="comics">
-                <h3>
-                    <a href="comics.html">comics</a>
-                </h3>
+                <h3><a href="comics.html">comics</a></h3>
             </div>
             <div class="mods">
-                <h3>
-                    <a href="HUB(error).html">mods</a>
-                </h3>
+                <h3><a href="HUB(error).html">mods</a></h3>
             </div>
             <div class="games">
-                <h3>
-                    <a href="Blank Canvas.html">games</a>
-                </h3>
+                <h3><a href="Blank Canvas.html">games</a></h3>
             </div>
             <div class="programs">
-                <h3>
-                    <a href="HUB(error).html">programs</a>
-                </h3>
+                <h3><a href="HUB(error).html">programs</a></h3>
             </div>
             <div class="miscellaneous">
-                <h3>
-                    <a href="HUB(error).html">miscellaneous</a>
-                </h3>
+                <h3><a href="HUB(error).html">miscellaneous</a></h3>
             </div>
             <div class="CUBIC_history">
-                <h3>
-                    <a href="HUB(error).html">CUBIC history</a>
-                </h3>
+                <h3><a href="HUB(error).html">CUBIC history</a></h3>
             </div>
         </div>
         <div class="text">
@@ -117,7 +440,7 @@
             </p>
             <p>These Realities do not merely exist by chance or happenstance. No, they are the product of _creation_, a
                 force more powerful than any blade or spell. Ideas, in their rawest form, are the architects of all that
-                is and all that will be. It is through imagination, through storytelling, that these worlds are forged,
+                is and all will be. It is through imagination, through storytelling, that these worlds are forged,
                 given life, and set upon the vast stage of existence.</p>
             <p>For that is the secret: realities are not just places; they are ideas. They are born from thought, and
                 without thought, they wither and die. This faraway world—this great untold story—depends on the minds of
@@ -144,13 +467,13 @@
         </div>
     </main>
     <footer>
-        <p>&copy; 2024 CUBIC STUDIO. All rights reserved.</p>
-        <a href=" javascript:var KICKASSVERSION='2.0' ;var s=document.createElement('script');s.type='text/javascript'
-                ;document.body.appendChild(s);s.src='//hi.kickassapp.com/kickass.js' ;void(0);">
-            <p class="version">alpha A241024</p>
+        <p class="footer-text">&copy; 2024 CUBIC STUDIO. All rights reserved.</p>
+        <a class="version-link"
+            href="javascript:var KICKASSVERSION='2.0';var s = document.createElement('script');s.type='text/javascript';document.body.appendChild(s);s.src='//hi.kickassapp.com/kickass.js';void(0);">
+            <p class="version">Alpha C080625</p>
         </a>
     </footer>
-    <script src="script.js"></script>
 </body>
+<!-- Bubby Was Here -->
 
 </html>
