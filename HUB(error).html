@@ -105,7 +105,6 @@
         .Paypal:hover,
         .Youtube:hover {
             transform: translateY(-10px);
-            transition: transform 0.3s;
         }
 
         main {
@@ -132,7 +131,7 @@
         }
 
         .website-navigation>div {
-            position: static;
+            position: relative;
             top: auto;
             right: auto;
             transform: none;
@@ -150,8 +149,8 @@
             padding: 0.3rem 0.7rem;
             border-radius: 1.5px;
             transition: background-color 0.3s ease, color 0.3s ease;
-            position: static;
-            z-index: 10;
+            position: relative;
+            z-index: 0;
             white-space: nowrap;
             display: block;
         }
@@ -160,6 +159,68 @@
             background-color: #ffffff;
             color: #000000;
         }
+
+        .website-navigation a::before,
+        .website-navigation a::after,
+        .website-navigation>div::before,
+        .website-navigation>div::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: all 0.25s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            pointer-events: none;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+        }
+
+        .website-navigation a::before,
+        .website-navigation a::after {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+        }
+
+        .website-navigation>div::before,
+        .website-navigation>div::after {
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+        }
+
+        .website-navigation a::after,
+        .website-navigation>div::after {
+            transform: translate(-50%, -50%) scale(0.5) rotate(180deg);
+        }
+
+        .website-navigation>div:hover a::before {
+            opacity: 1;
+            top: -5px;
+            left: -5px;
+            transform: translate(0, 0) scale(1);
+        }
+
+        .website-navigation>div:hover a::after {
+            opacity: 1;
+            top: calc(100% - 10px);
+            left: calc(100% - 10px);
+            transform: translate(0, 0) scale(1) rotate(180deg);
+        }
+
+        .website-navigation>div:hover::before {
+            opacity: 1;
+            top: -5px;
+            left: calc(100% - 10px);
+            transform: translate(0, 0) scale(1);
+        }
+
+        .website-navigation>div:hover::after {
+            opacity: 1;
+            top: calc(100% - 10px);
+            left: -5px;
+            transform: translate(0, 0) scale(1) rotate(180deg);
+        }
+
 
         h1 {
             font-size: 8rem;
@@ -268,9 +329,7 @@
 
             .website-navigation {
                 justify-content: center;
-                padding: 0.5rem;
-                gap: 0.5rem;
-                margin-top: -1rem;
+
             }
 
             .website-navigation h3 {
@@ -301,11 +360,6 @@
                 height: auto;
                 margin-left: 0.5rem;
                 margin-right: 0.5rem;
-            }
-
-            .website-navigation {
-                gap: 0.8rem;
-                margin-top: -1rem;
             }
 
             h1 {
@@ -363,10 +417,6 @@
             .social-icons img {
                 width: 50px;
                 height: auto;
-            }
-
-            .website-navigation {
-                margin-top: -0.5rem;
             }
 
             h1 {
@@ -465,7 +515,7 @@
         <p class="footer-text">&copy; 2024 CUBIC STUDIO. All rights reserved.</p>
         <a class="version-link"
             href="javascript:var KICKASSVERSION='2.0';var s = document.createElement('script');s.type='text/javascript';document.body.appendChild(s);s.src='//hi.kickassapp.com/kickass.js';void(0);">
-            <p class="version">Alpha C080625</p>
+            <p class="version">Alpha D310625</p>
         </a>
     </footer>
 </body>
