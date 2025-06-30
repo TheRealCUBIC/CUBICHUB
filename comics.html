@@ -9,7 +9,7 @@
     <style>
         @font-face {
             font-family: 'Minecraft';
-            src: url('assests/fonts/Minecraft.ttf') format('truetype');
+            src: url(assests/fonts/Minecraft.ttf) format('truetype');
             font-weight: normal;
             font-style: normal;
         }
@@ -26,24 +26,35 @@
         }
 
         body {
-            background-color: #151515;
             color: ghostwhite;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            background-color: #151515;
+        }
+
+        .main-content-area {
+            flex: 1;
         }
 
         header {
-            background: linear-gradient(to right, rgb(21, 21, 21), #808080);
+            background: linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 100%), url('assests/images/Banners/CUBIC Comic Banner.webp') no-repeat center center/cover;
             width: 100%;
             padding: 0.5rem;
             text-align: left;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-blend-mode: multiply;
         }
 
         .header-content {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            width: 100%;
         }
 
         .logo {
@@ -62,7 +73,7 @@
         }
 
         .logo-text {
-            font-family: 'Minecraft', cursive;
+            font-family: 'Minecraft';
             font-size: 3rem;
             letter-spacing: 0.15rem;
             color: ghostwhite;
@@ -107,6 +118,187 @@
             transform: translateY(-10px);
         }
 
+        /* ---------------------------------------------------------------------- Comic-News-Section ----------------------------------------------------------------------- */
+        .Comic-News-Section {
+            position: relative;
+            margin-bottom: 4rem;
+            margin-top: -3rem;
+        }
+
+        .Comic-News-Section h1 {
+            font-size: 2.1rem;
+            color: rgb(0, 140, 255);
+            margin-bottom: 1rem;
+            text-align: center;
+            position: relative;
+            z-index: 5;
+        }
+
+        .latest-upload-wrapper {
+            position: relative;
+            width: 100vw;
+            margin-left: calc(50% - 50vw);
+            max-width: none;
+            overflow: hidden;
+        }
+
+        .latest-upload-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ---------------------------------------------------------------------- Comic-News-Section End ----------------------------------------------------------------------- */
+
+        /* ---------------------------------------------------------------------- Disclaimer Text ----------------------------------------------------------------------- */
+        .disclaimer-text {
+            color: red;
+            text-align: center;
+            margin-top: 0px;
+            font-size: 0.8vw;
+            padding: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: clip;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 425px) {
+            .disclaimer-text {
+                font-size: 0.5vw;
+            }
+        }
+
+        /* ---------------------------------------------------------------------- Disclaimer Text End ----------------------------------------------------------------------- */
+
+        /* ---------------------------------------------------------------------- Blue Line with Text ----------------------------------------------------------------------- */
+        .horizontal-line-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .blue-line-segment {
+            height: 5px;
+            background-color: rgb(0, 140, 255);
+        }
+
+        .blue-line-segment.left {
+            flex-grow: 0;
+            width: 10%;
+        }
+
+        .blue-line-segment.right {
+            flex-grow: 1;
+        }
+
+        .line-text {
+            color: rgb(0, 140, 255);
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 0 10px;
+            background-color: #151515;
+            white-space: nowrap;
+        }
+
+        /* ---------------------------------------------------------------------- Blue Line with Text End ----------------------------------------------------------------------- */
+
+        /* ---------------------------------------------------------------------- Comic Covers Section ----------------------------------------------------------------------- */
+        .comic-covers-section {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 150px;
+            row-gap: 50px;
+            margin: 20px 0;
+            padding: 0 10px;
+        }
+
+        .comic-cover-container {
+            position: relative;
+            width: 18%;
+            max-width: 200px;
+            height: auto;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .comic-cover-container:hover {
+            transform: scale(1.05);
+        }
+
+        .comic-cover-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .comic-gradient-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .comic-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            color: white;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 1;
+        }
+
+        .comic-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .comic-info p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .comic-cover-container:hover .comic-gradient-overlay {
+            opacity: 1;
+        }
+
+        .comic-cover-container:hover .comic-info {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+        @media (max-width: 768px) {
+            .comic-cover-container {
+                width: 45%;
+            }
+        }
+
+        @media (max-width: 425px) {
+            .comic-cover-container {
+                width: 90%;
+            }
+        }
+
+        /* ---------------------------------------------------------------------- Comic Covers Section End ----------------------------------------------------------------------- */
+
         main {
             flex: 1;
             padding: 2rem 1rem;
@@ -120,7 +312,7 @@
         .website-navigation {
             width: 100%;
             margin-top: -2.5rem;
-            margin-bottom: 3rem;
+            margin-bottom: 0.5rem;
             display: flex;
             justify-content: flex-start;
             align-items: center;
@@ -131,7 +323,7 @@
         }
 
         .website-navigation>div {
-            position: static;
+            position: relative;
             top: auto;
             right: auto;
             transform: none;
@@ -149,39 +341,99 @@
             padding: 0.3rem 0.7rem;
             border-radius: 1.5px;
             transition: background-color 0.3s ease, color 0.3s ease;
-            position: static;
-            z-index: 10;
+            position: relative;
+            z-index: 0;
             white-space: nowrap;
             display: block;
         }
 
-        .website-navigation a:hover {
+        .website-navigation>div:hover>h3>a,
+        .website-navigation>div.active-nav-item>h3>a {
             background-color: #ffffff;
             color: #000000;
         }
 
-        main p {
-            font-size: 1.2rem;
-            margin-top: 1rem;
-            text-align: start;
+        .website-navigation a::before,
+        .website-navigation a::after,
+        .website-navigation>div::before,
+        .website-navigation>div::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: all 0.25s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            pointer-events: none;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
         }
 
-        .text {
-            padding: 5rem;
+        .website-navigation a::before,
+        .website-navigation a::after {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+        }
+
+        .website-navigation>div::before,
+        .website-navigation>div::after {
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+        }
+
+        .website-navigation a::after,
+        .website-navigation>div::after {
+            transform: translate(-50%, -50%) scale(0.5) rotate(180deg);
+        }
+
+        .website-navigation>div:hover a::before,
+        .website-navigation>div.active-nav-item a::before {
+            opacity: 1;
+            top: -5px;
+            left: -5px;
+            transform: translate(0, 0) scale(1);
+        }
+
+        .website-navigation>div:hover a::after,
+        .website-navigation>div.active-nav-item a::after {
+            opacity: 1;
+            top: calc(100% - 10px);
+            left: calc(100% - 10px);
+            transform: translate(0, 0) scale(1) rotate(180deg);
+        }
+
+        .website-navigation>div:hover::before,
+        .website-navigation>div.active-nav-item::before {
+            opacity: 1;
+            top: -5px;
+            left: calc(100% - 10px);
+            transform: translate(0, 0) scale(1);
+        }
+
+        .website-navigation>div:hover::after,
+        .website-navigation>div.active-nav-item::after {
+            opacity: 1;
+            top: calc(100% - 10px);
+            left: -5px;
+            transform: translate(0, 0) scale(1) rotate(180deg);
         }
 
         footer {
-            background: rgb(21, 21, 21);
             color: whitesmoke;
             width: 100%;
             padding: 1rem 1.5rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: flex-end;
             flex-wrap: nowrap;
-            margin-top: auto;
             position: relative;
+            z-index: 1;
+            background-image: url('assests/images/Random/Steve N Bubby.webp');
+            background-size: 60%;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            min-height: 450px;
         }
 
         .footer-text {
@@ -189,6 +441,7 @@
             text-align: center;
             margin-right: 0;
             margin-left: 0;
+            margin-bottom: 5px;
         }
 
         .version {
@@ -199,6 +452,7 @@
             text-align: right;
             color: rgb(124, 124, 124);
         }
+
 
         a {
             text-decoration: none;
@@ -219,6 +473,20 @@
 
         ::-webkit-scrollbar-thumb:hover {
             background: #888;
+        }
+
+        @media (max-width: 2560px) {
+            footer {
+                background-size: 60%;
+                min-height: 600px;
+            }
+        }
+
+        @media (max-width: 1440px) {
+            footer {
+                background-size: 60%;
+                min-height: 350px;
+            }
         }
 
 
@@ -248,7 +516,6 @@
                 justify-content: center;
                 padding: 0.5rem;
                 gap: 0.5rem;
-                margin-top: -1rem;
             }
 
             .website-navigation h3 {
@@ -258,6 +525,16 @@
             .website-navigation a {
                 padding: 0.3rem 0.6rem;
             }
+
+            .Comic-News-Section {
+                margin-top: -2rem;
+            }
+
+            footer {
+                background-size: 70%;
+                min-height: 300px;
+            }
+
         }
 
         @media (max-width: 768px) {
@@ -283,16 +560,6 @@
 
             .website-navigation {
                 gap: 0.8rem;
-                margin-top: -1rem;
-            }
-
-            main p {
-                font-size: 1rem;
-                line-height: 1.6;
-            }
-
-            .text {
-                padding: 2rem;
             }
 
             footer {
@@ -301,12 +568,14 @@
                 justify-content: center;
                 align-items: center;
                 text-align: center;
+                min-height: 250px;
+                background-size: 80%;
             }
 
             .footer-text {
                 width: 100%;
                 text-align: center;
-                margin: 0.2rem 0;
+                margin: 0rem;
             }
 
             .version {
@@ -315,11 +584,21 @@
                 bottom: auto;
                 width: 100%;
                 text-align: center;
-                margin-top: 5px;
+                margin-top: 0px;
             }
+
+            .Comic-News-Section {
+                margin-bottom: 13rem;
+            }
+
+            .Comic-News-Section h1 {
+                font-size: 1.8rem;
+            }
+
+            /* ---------------------------------------------------------------------- Comic-News-Text End ----------------------------------------------------------------------- */
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 425px) {
             html {
                 font-size: 14px;
             }
@@ -338,141 +617,269 @@
                 height: auto;
             }
 
-            .website-navigation {
-                margin-top: -0.5rem;
+            .Comic-News-Section {
+                margin-bottom: 20rem;
             }
 
-            .text {
-                padding: 1rem;
+            .Comic-News-Section h1 {
+                font-size: 1.5rem;
+            }
+
+            footer {
+                background-size: 100%;
+                min-height: 170px;
+            }
+
+            /* ---------------------------------------------------------------------- Comic-News-Text End ----------------------------------------------------------------------- */
+            .disclaimer-text {
+                padding: 0rem;
+                font-size: 0.28rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <header>
-        <div class="header-content">
-            <div class="logo">
-                <div class="image">
-                    <a href="index.html" target="_self">
-                        <img src="assests/images/header/logo_image.webp" alt="(error) image not found">
+    <div class="main-content-area">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <div class="image">
+                        <a href="index.html" target="_self">
+                            <img src="assests/images/header/logo_image.webp" alt="(error) LOGO image not found">
+                        </a>
+                    </div>
+                    <a href="index.html">
+                        <span class="logo-text">CUBIC Comics</span>
                     </a>
                 </div>
-                <a href="index.html">
-                    <span class="logo-text">CUBIC Comics</span>
-                </a>
+                <div class="social-icons">
+                    <div class="Youtube">
+                        <a href="https://www.youtube.com/channel/UCsM3kc7cmzJ92a3A3y2wunw" target="_blank">
+                            <img src="assests/images/header/Youtube.webp" alt="(error) Social Icon image not found">
+                        </a>
+                    </div>
+                    <div class="Fiverr">
+                        <a href="HUB(error).html">
+                            <img src="assests/images/header/Fiverr.webp" alt="(error) Social Icon image not found">
+                        </a>
+                    </div>
+                    <div class="Patreon">
+                        <a href="HUB(error).html" target="_blank">
+                            <img src="assests/images/header/Patreon.webp" alt="(error) Social Icon image not found">
+                        </a>
+                    </div>
+                    <div class="Paypal">
+                        <a href="https://www.paypal.com/paypalme/TheRealCUBIC?country.x=MA&locale.x=en_US"
+                            target="_blank">
+                            <img src="assests/images/header/Paypal_me.webp" alt="(error) Social Icon image not found">
+                        </a>
+                    </div>
+                    <div class="Discord">
+                        <a href="HUB(error).html" target="_blank">
+                            <img src="assests/images/header/Discord.webp" alt="(error) Social Icon image not found">
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="social-icons">
-                <div class="Youtube">
-                    <a href="https://www.youtube.com/channel/UCsM3kc7cmzJ92a3A3y2wunw" target="_blank">
-                        <img src="assests/images/header/Youtube.webp" alt="(error) image not found">
-                    </a>
+        </header>
+
+        <main>
+            <!-- ---------------------------------------------------------------------- Website-Navigation ----------------------------------------------------------------------- -->
+            <div class="website-navigation">
+                <div class="shows">
+                    <h3><a href="HUB(error).html">shows</a></h3>
                 </div>
-                <div class="Fiverr">
+                <div class="movies">
+                    <h3><a href="HUB(error).html">movies</a></h3>
+                </div>
+                <div class="comics active-nav-item">
+                    <h3><a href="comics.html">comics</a></h3>
+                </div>
+                <div class="mods">
+                    <h3><a href="HUB(error).html">mods</a></h3>
+                </div>
+                <div class="games">
+                    <h3><a href="Blank Canvas.html">games</a></h3>
+                </div>
+                <div class="programs">
+                    <h3><a href="HUB(error).html">programs</a></h3>
+                </div>
+                <div class="miscellaneous">
+                    <h3><a href="HUB(error).html">miscellaneous</a></h3>
+                </div>
+                <div class="CUBIC_history">
+                    <h3><a href="HUB(error).html">CUBIC history</a></h3>
+                </div>
+            </div>
+            <!-- ---------------------------------------------------------------------- Website-Navigation End ----------------------------------------------------------------------- -->
+        </main>
+
+        <!-- ---------------------------------------------------------------------- Comic-News-Section ----------------------------------------------------------------------- -->
+        <div class="Comic-News-Section">
+            <h1>-UPCOMING-</h1>
+            <div class="latest-upload-wrapper">
+                <div class="Latest-Upload">
                     <a href="HUB(error).html">
-                        <img src="assests/images/header/Fiverr.webp" alt="(error) image not found">
-                    </a>
-                </div>
-                <div class="Patreon">
-                    <a href="HUB(error).html" target="_blank">
-                        <img src="assests/images/header/Patreon.webp" alt="(error) image not found">
-                    </a>
-                </div>
-                <div class="Paypal">
-                    <a href="https://www.paypal.com/paypalme/TheRealCUBIC?country.x=MA&locale.x=en_US" target="_blank">
-                        <img src="assests/images/header/Paypal_me.webp" alt="(error) image not found">
-                    </a>
-                </div>
-                <div class="Discord">
-                    <a href="HUB(error).html" target="_blank">
-                        <img src="assests/images/header/Discord.webp" alt="(error) image not found">
+                        <img src="assests/images/CUBIC Comics/SONIC SPIRIT promo.webp"
+                            alt="(error) Promo image not found" class="Latest Thumbnail">
                     </a>
                 </div>
             </div>
-        </div>
-    </header>
-    <main>
-        <div class="website-navigation">
-            <div class="shows">
-                <h3><a href="HUB(error).html">shows</a></h3>
-            </div>
-            <div class="movies">
-                <h3><a href="HUB(error).html">movies</a></h3>
-            </div>
-            <div class="comics">
-                <h3><a href="comics.html">comics</a></h3>
-            </div>
-            <div class="mods">
-                <h3><a href="HUB(error).html">mods</a></h3>
-            </div>
-            <div class="games">
-                <h3><a href="Blank Canvas.html">games</a></h3>
-            </div>
-            <div class="programs">
-                <h3><a href="HUB(error).html">programs</a></h3>
-            </div>
-            <div class="miscellaneous">
-                <h3><a href="HUB(error).html">miscellaneous</a></h3>
-            </div>
-            <div class="CUBIC_history">
-                <h3><a href="HUB(error).html">CUBIC history</a></h3>
-            </div>
-        </div>
-        <div class="text">
-            <H1 style="color: rgb(0, 140, 255);">The Tale of the Unborn Reality</H1>
-            <p>There exists a world, a story, a reality so distant that even the wisest minds have yet to glimpse it. It
-                lies beyond the boundaries of all known existence, floating in a place of unformed thoughts and
-                half-imagined dreams. This world—this grand tale—does not yet have shape, for it is not fully alive. It
-                waits, patient and silent, on the edge of creation, whispering to those who dare to dream beyond the
-                confines of their reality.</p>
-            <p>In the vastness of Existence, where Realities fold and universes collide and timelines branch out, there
-                are
-                many tales known and told. But this one… this one remains elusive. It has not yet entered the fabric of
-                time
-                and space, for it cannot exist until it is remembered. Or, rather, _believed_ into existence.</p>
-            <p>You see, realities are not just born from nothing. They require more than just a spark; they need the
-                fire of
-                many minds to truly live. This world that waits—this Reality—will not come to pass until enough souls
-                have
-                thought of it, dreamed of it, imagined it. It hangs in the balance, suspended in a liminal space between
-                being and non-being, its fate tied to the minds of those who unknowingly hold the power to bring it
-                forth.
+            <!-- ---------------------------------------------------------------------- Disclaimer Text ----------------------------------------------------------------------- -->
+            <p class="disclaimer-text">
+                !!! This project has no affiliation with SEGA® or Sonic™. All SEGA® and Sonic™ properties are their
+                own.
+                This
+                comic is a fan-made work and is not intended for commercial use or to generate any profit !!!
             </p>
-            <p>These Realities do not merely exist by chance or happenstance. No, they are the product of _creation_, a
-                force more powerful than any blade or spell. Ideas, in their rawest form, are the architects of all that
-                is and all will be. It is through imagination, through storytelling, that these worlds are forged,
-                given life, and set upon the vast stage of existence.</p>
-            <p>For that is the secret: realities are not just places; they are ideas. They are born from thought, and
-                without thought, they wither and die. This faraway world—this great untold story—depends on the minds of
-                those in the _real_ world. It cannot come to be unless enough hearts and minds turn toward it. Until
-                then, it remains in the distance, a shadow, a whisper on the wind.</p>
-            <p>But as more people imagine it, as more people think of it, dream of it, speak of it, the veil between
-                worlds grows thin. Its universes stir to life, its timelines begin to unwind, and its stories take root
-                in the hearts of those who would one day travel its landscapes. It becomes real, not in an instant, but
-                through the collective will of those who give it form. And when enough believe, when enough have seen
-                its light, it will manifest fully, crossing the boundary between thought and existence.</p>
-            <p>And so it is that these Realities, these Universes and Timelines, cling to existence by the thinnest of
-                threads. They live, not in the minds of their creators alone, but in the hearts and imaginations of all
-                who encounter them. Each time a book is opened, a song played, a game begun, a universe is rekindled.
-                Its skies blaze with stars once more, its lands teeming with life. Battles are fought, victories won,
-                and destinies fulfilled.</p>
-            <p>But should the stories ever cease, should the minds of those who once believed turn away, these worlds
-                will wither. They will collapse into nothingness, their histories erased, their legacies forgotten. They
-                will be as if they never were, lost to the endless void where all untold tales go to die.</p>
-            <P>Until then, it waits, a reality unborn, but not forgotten. It exists in a plane far from ours, but its
-                destiny is tied to this world—the world of creators, of dreamers. And so, the tale continues, waiting
-                for the moment when enough minds will call it forth, and it will finally step into the light of
-                existence, as real as the ground beneath your feet, as eternal as the stars in the sky. For as long as
-                there are those who imagine, who create, who dream, these worlds will endure.</P>
+            <!-- ---------------------------------------------------------------------- Disclaimer Text End ----------------------------------------------------------------------- -->
+
+            <!-- ---------------------------------------------------------------------- New Chapters Line with Text ----------------------------------------------------------------------- -->
+            <div class="horizontal-line-container">
+                <div class="blue-line-segment left"></div>
+                <span class="line-text">New Chapters</span>
+                <div class="blue-line-segment right"></div>
+            </div>
+            <!-- ---------------------------------------------------------------------- New Chapters Line with Text End ----------------------------------------------------------------------- -->
+
+            <!-- ----------------------------------------------------------------------- New Chapters Comic Covers  -------------------------------------------------------------------- -->
+            <div class="comic-covers-section">
+                <div class="comic-cover-container">
+                    <a href="HUB(error).html"><img
+                            src="assests/images/CUBIC Comics/Comic Covers/SONIC SPIRIT Cover.webp"
+                            alt="SONIC SPIRIT Comic Cover">
+                    </a>
+                    <div class="comic-gradient-overlay"></div>
+                    <div class="comic-info">
+                        <h3>SONIC SPIRIT</h3>
+                        <p>By BOB</p>
+                    </div>
+                </div>
+                <div class="comic-cover-container">
+                    <a href="HUB(error).html"><img
+                            src="assests/images/CUBIC Comics/Comic Covers/COMING SOON Covers.webp"
+                            alt="Coming Soon Comic Cover">
+                    </a>
+                    <div class="comic-gradient-overlay"></div>
+                    <div class="comic-info">
+                        <h3>COMING SOON</h3>
+                        <p>...</p>
+                    </div>
+                </div>
+                <div class="comic-cover-container">
+                    <a href="HUB(error).html"><img
+                            src="assests/images/CUBIC Comics/Comic Covers/COMING SOON Covers.webp"
+                            alt="Coming Soon Comic Cover">
+                    </a>
+                    <div class="comic-gradient-overlay"></div>
+                    <div class="comic-info">
+                        <h3>COMING SOON</h3>
+                        <p>...</p>
+                    </div>
+                </div>
+                <div class="comic-cover-container">
+                    <a href="HUB(error).html"><img
+                            src="assests/images/CUBIC Comics/Comic Covers/COMING SOON Covers.webp"
+                            alt="Coming Soon Comic Cover">
+                    </a>
+                    <div class="comic-gradient-overlay"></div>
+                    <div class="comic-info">
+                        <h3>COMING SOON</h3>
+                        <p>...</p>
+                    </div>
+                </div>
+                <div class="comic-cover-container">
+                    <a href="HUB(error).html"><img
+                            src="assests/images/CUBIC Comics/Comic Covers/COMING SOON Covers.webp"
+                            alt="Coming Soon Comic Cover">
+                    </a>
+                    <div class="comic-gradient-overlay"></div>
+                    <div class="comic-info">
+                        <h3>COMING SOON</h3>
+                        <p>...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ---------------------------------------------------------------------- All Comics Line with Text ----------------------------------------------------------------------- -->
+            <div class="horizontal-line-container">
+                <div class="blue-line-segment left"></div>
+                <span class="line-text">All Comics</span>
+                <div class="blue-line-segment right"></div>
+            </div>
+
+            <!-- ---------------------------------------------------------------------- All comics Covers Section ----------------------------------------------------------------------- -->
+            <div class="comic-covers-section">
+                <div class="comic-cover-container">
+                    <a href="HUB(error).html"><img
+                            src="assests/images/CUBIC Comics/Comic Covers/SONIC SPIRIT Cover.webp"
+                            alt="SONIC SPIRIT Comic Cover">
+                    </a>
+                    <div class="comic-gradient-overlay"></div>
+                    <div class="comic-info">
+                        <h3>SONIC SPIRIT</h3>
+                        <p>By BOB</p>
+                    </div>
+                </div>
+                <div class="comic-cover-container">
+                    <a href="HUB(error).html"><img
+                            src="assests/images/CUBIC Comics/Comic Covers/COMING SOON Covers.webp"
+                            alt="Coming Soon Comic Cover">
+                    </a>
+                    <div class="comic-gradient-overlay"></div>
+                    <div class="comic-info">
+                        <h3>COMING SOON</h3>
+                        <p>...</p>
+                    </div>
+                </div>
+                <div class="comic-cover-container">
+                    <a href="HUB(error).html"><img
+                            src="assests/images/CUBIC Comics/Comic Covers/COMING SOON Covers.webp"
+                            alt="Coming Soon Comic Cover">
+                    </a>
+                    <div class="comic-gradient-overlay"></div>
+                    <div class="comic-info">
+                        <h3>COMING SOON</h3>
+                        <p>...</p>
+                    </div>
+                </div>
+                <div class="comic-cover-container">
+                    <a href="HUB(error).html"><img
+                            src="assests/images/CUBIC Comics/Comic Covers/COMING SOON Covers.webp"
+                            alt="Coming Soon Comic Cover">
+                    </a>
+                    <div class="comic-gradient-overlay"></div>
+                    <div class="comic-info">
+                        <h3>COMING SOON</h3>
+                        <p>...</p>
+                    </div>
+                </div>
+                <div class="comic-cover-container">
+                    <a href="HUB(error).html"><img
+                            src="assests/images/CUBIC Comics/Comic Covers/COMING SOON Covers.webp"
+                            alt="Coming Soon Comic Cover">
+                    </a>
+                    <div class="comic-gradient-overlay"></div>
+                    <div class="comic-info">
+                        <h3>COMING SOON</h3>
+                        <p>...</p>
+                    </div>
+                </div>
+            </div>
+
+
         </div>
-    </main>
+        <!-- ---------------------------------------------------------------------- Comic-News-Section End ----------------------------------------------------------------------- -->
+    </div>
+
     <footer>
         <p class="footer-text">&copy; 2024 CUBIC STUDIO. All rights reserved.</p>
-        <a class="version-link"
-            href="javascript:var KICKASSVERSION='2.0';var s = document.createElement('script');s.type='text/javascript';document.body.appendChild(s);s.src='//hi.kickassapp.com/kickass.js';void(0);">
-            <p class="version">Alpha C080625</p>
+        <a class="version-link" href="hello.html">
+            <p class="version">Alpha D310625</p>
         </a>
     </footer>
+
 </body>
 <!-- Bubby Was Here -->
 
