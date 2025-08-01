@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="assests/images/favicon.webp" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blank Canvas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <meta name="description" content="Explore creative projects from shows and comics to games and mods BUT in 3D!!!">
+    <style>
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('assests/fonts/Minecraft.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f0f0;
+            touch-action: none;
+        }
+
+        canvas {
+            display: block;
+            cursor: grab;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            text-align: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease, font-size 0.5s ease;
+        }
+
+        #pause-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-family: 'Minecraft', cursive;
+            text-align: left;
+        }
+
+        #pause-header a {
+            color: white;
+            text-decoration: none;
+        }
+
+        #pause-header .logo-pause img {
+            width: 60px;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        #pause-header .logo-text-pause {
+            font-size: 1em;
+            letter-spacing: 0.1em;
+        }
+
+        #pause-header .logo-pause img:hover {
+            animation: rotate 1.2s forwards;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 0.7em;
+            margin-top: 15px;
+            color: #ccc;
+            text-align: left;
+            width: auto;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        #loading-text {
+            font-size: 1.5em;
+        }
+
+        #fps-counter {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 1.2em;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+
+        #version-text {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: white;
+            font-size: 1em;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+
+        #darkness-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 99;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #warning-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 2.5em;
+            text-align: center;
+            opacity: 0;
+            z-index: 101;
+            pointer-events: none;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #mobile-controls {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            display: none;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        #mobile-controls.active {
+            pointer-events: auto;
+        }
+
+        #joystick-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-left: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            opacity: 0.8;
+        }
+
+        #joystick {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            touch-action: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-right: 20px;
+            pointer-events: auto;
+        }
+
+        .action-button {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.2s, transform 0.1s;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .action-button.sprite-button {
+            color: transparent;
+        }
+
+        .action-button:active {
+            background-color: rgba(0, 0, 0, 0.8);
+            transform: scale(0.95);
+        }
+
+        .action-button.active {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        #orientation-message {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            font-size: 1.5em;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+
+        #orientation-message p {
+            position: relative;
+            padding: 20px 40px;
+            box-sizing: border-box;
+            max-width: 80%;
+        }
+
+        #orientation-message p::before,
+        #orientation-message p::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 1;
+            transition: none;
+            pointer-events: none;
+        }
+
+        #orientation-message p::before {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+            top: -10px;
+            left: -10px;
+            transform: scale(1);
+        }
+
+        #orientation-message p::after {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+            bottom: -10px;
+            right: -10px;
+            transform: scale(1) rotate(180deg);
+        }
+
+        #orientation-message p .top-right-corner::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 1;
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+            top: -10px;
+            right: -10px;
+            transform: scale(1);
+            pointer-events: none;
+        }
+
+        #orientation-message p .bottom-left-corner::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 1;
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+            bottom: -10px;
+            left: -10px;
+            transform: scale(1) rotate(180deg);
+            pointer-events: none;
+        }
+
+        #orientation-message img {
+            max-width: 400px;
+            height: auto;
+            margin-bottom: 0px;
+        }
+
+        #sprint-sprite-display,
+        #crouch-sprite-display,
+        #flying-sprite-display {
+            position: absolute;
+            bottom: 30px;
+            width: 80px;
+            height: 80px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 200;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out, right 0.3s ease-out;
+            pointer-events: none;
+        }
+
+        #announcement-container {
+            position: fixed;
+            bottom: 10%;
+            right: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-end;
+            z-index: 2000;
+            pointer-events: none;
+            gap: 15px;
+        }
+
+        .announcement {
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 40px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            overflow: visible;
+            transform: translateX(150%);
+            animation: slideIn 0.5s forwards, slideOut 0.5s 4.5s forwards;
+            max-width: 350px;
+            box-sizing: border-box;
+        }
+
+        .announcement p {
+            margin: 0;
+            font-size: 1em;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .announcement img {
+            width: auto;
+            height: 50px;
+        }
+
+        .announcement .corner {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .announcement .top-left {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+            top: -10px;
+            left: -10px;
+        }
+
+        .announcement .top-right {
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+            top: -10px;
+            right: -10px;
+        }
+
+        .announcement .bottom-left {
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+            bottom: -10px;
+            left: -10px;
+            transform: rotate(180deg);
+        }
+
+        .announcement .bottom-right {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+            bottom: -10px;
+            right: -10px;
+            transform: rotate(180deg);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(150%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(150%);
+                opacity: 0;
+            }
+        }
+
+
+        @media (max-height: 600px) and (orientation: landscape) {
+            #loading-screen {
+                font-size: 1.5em;
+            }
+
+            #pause-header {
+                top: 10px;
+                left: 10px;
+            }
+
+            #pause-header .logo-pause img {
+                width: 40px;
+            }
+
+            #instructions {
+                bottom: 50px;
+                left: 10px;
+            }
+
+            #fps-counter,
+            #version-text {
+                font-size: 0.9em;
+                padding: 3px 6px;
+            }
+
+            #warning-text {
+                font-size: 1.8em;
+            }
+
+        }
+
+        @media (max-height: 450px) and (orientation: landscape) {
+            #loading-screen {
+                font-size: 1em;
+            }
+
+            #pause-header {
+                top: 5px;
+                left: 5px;
+                gap: 5px;
+            }
+
+            #pause-header .logo-pause img {
+                width: 30px;
+            }
+
+            #instructions {
+                bottom: 50px;
+                left: 5px;
+            }
+
+            #fps-counter,
+            #version-text {
+                font-size: 0.6em;
+            }
+
+            #warning-text {
+                font-size: 1.5em;
+            }
+
+        }
+
+        @media screen and (orientation: portrait) {
+            #orientation-message {
+                display: flex !important;
+            }
+
+            canvas,
+            #loading-screen,
+            #fps-counter,
+            #version-text,
+            #darkness-overlay,
+            #warning-text,
+            #mobile-controls {
+                display: none !important;
+            }
+
+            #announcement-container {
+                bottom: auto;
+                top: 20px;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading-screen">
+        <div id="pause-header">
+            <div class="logo-pause">
+                <a href="index.html">
+                    <img src="assests/images/favicon.webp" alt="(error) CUBIC Logo image not found">
+                </a>
+            </div>
+            <a href="index.html">
+                <span class="logo-text-pause">CUBIC Games</span>
+            </a>
+        </div>
+        <span id="loading-text">Welcome to Blank Canvas :)</span>
+        <div id="instructions">
+        </div>
+    </div>
+    <div id="fps-counter">FPS: 0</div>
+    <div id="version-text">Alpha A080625</div>
+    <div id="darkness-overlay"></div>
+    <div id="warning-text"></div>
+
+    <div id="mobile-controls">
+        <div id="joystick-container">
+            <div id="joystick"></div>
+        </div>
+        <div class="action-buttons">
+            <button id="jump-button" class="action-button">Jump</button>
+            <button id="sprint-button" class="action-button">Sprint</button>
+            <button id="crouch-button" class="action-button">Crouch</button>
+        </div>
+    </div>
+
+    <div id="sprint-sprite-display"></div>
+    <div id="crouch-sprite-display"></div>
+    <div id="flying-sprite-display"></div>
+
+    <div id="orientation-message">
+        <img src="assests/images/Blanck_Canvas/Global_Sprites/rotate_device.webp"
+            alt="(error) Rotate Device image not found">
+        <p>
+            For the best experience Please rotate your device to landscape mode :)
+            <span class="top-right-corner"></span>
+            <span class="bottom-left-corner"></span>
+        </p>
+    </div>
+
+    <div id="announcement-container"></div>
+
+
+    <script type="module">
+        let scene, camera, renderer;
+        const clock = new THREE.Clock();
+
+        let cameraYaw = 0;
+        let cameraPitch = 0;
+        let verticalVelocity = 0;
+        let isJumping = false;
+        let isFlying = false;
+        let currentBaseCameraHeight = 5.0;
+        const keysPressed = {};
+        let isPointerLocked = false;
+
+        const mouseSensitivity = 0.002;
+        const baseMoveSpeed = 50.0;
+        const sprintMultiplier = 1.5;
+        const crouchMultiplier = 0.5;
+        const flySpeedMultiplier = 5.0;
+        const normalCameraHeight = 5.0;
+        const crouchCameraHeight = 2.0;
+        const jumpStrength = 25;
+        const gravity = -9.8 * 5;
+
+        let lastSpacePressTime = 0;
+        let spacebarHeld = false;
+        const doubleTapThreshold = 300;
+
+        let stars;
+        let moon;
+        const groundSize = 2500;
+        const boundaryRadius = 1500;
+        const slowdownStartDistance = 50;
+        const maxSlowdownDistance = 100;
+        const fadeEffectStartDistance = 0;
+        const maxFadeDistance = 150;
+        let isStoppedInBoundary = false;
+        let stopTime = 0;
+        const BOBSentences = [
+            "there is no escape", "god is watching", "prove yourself", "no", "you are not alone",
+            "give up", ":)", "too late", "do not fail", "i'm watching", "lose all hope",
+            "only darkness awaits", "are you lost?", "still trying?", "nope", "h-hell nah", "bruh"
+        ];
+        let currentBOBSentence = "";
+        let lastSentenceChangeTime = 0;
+        const sentenceChangeInterval = 4000;
+
+        let fpsCounterElement;
+        let loadingScreen;
+        let darknessOverlayElement;
+        let warningTextElement;
+        let instructionsElement;
+        let lastFrameTime = performance.now();
+        let lastFpsUpdateTime = 0;
+        const fpsUpdateInterval = 1000;
+
+        let joystickContainer, joystick;
+        let mobileControlsElement;
+        let joystickActive = false;
+        let joystickStartX, joystickStartY;
+        let joystickCurrentX, joystickCurrentY;
+        let touchCameraActive = false;
+        let lastTouchX, lastTouchY;
+        let touchIdentifierForCamera = null;
+        let touchIdentifierForJoystick = null;
+        let hasMobileInteractionStarted = false;
+        let orientationMessage;
+
+        let gamepadIndex = -1;
+        const gamepadDeadzone = 0.1;
+        let lastGamepadJumpPressTime = 0;
+        let gamepadButton0PreviouslyPressed = false;
+        let isLoadingScreenVisible = true;
+        let gamepadStartPreviouslyPressed = false;
+
+        let gamepadButton1PreviouslyPressed = false;
+        let gamepadButton2PreviouslyPressed = false;
+
+        let lastInputTypeChangeTime = 0;
+        const inputSwitchCooldown = 1000;
+        let currentInputType = 'keyboard';
+
+        let isSprintingToggled = false;
+        let isCrouchingToggled = false;
+
+        let sprintSpriteDisplayElement;
+        let crouchSpriteDisplayElement;
+        let flyingSpriteDisplayElement;
+
+        let announcementContainer;
+
+        const SPRITE_JUMP = 'assests/images/Blanck_Canvas/Mobile_Sprites/Jump_button_Sprite.webp';
+        const SPRITE_DOWN = 'assests/images/Blanck_Canvas/Mobile_Sprites/DOWN_button_Sprite.webp';
+        const SPRITE_UP = 'assests/images/Blanck_Canvas/Mobile_Sprites/UP_button_Sprite.webp';
+        const SPRITE_SPRINT = 'assests/images/Blanck_Canvas/Mobile_Sprites/Sprint_button_Sprite.webp';
+        const SPRITE_CROUCH = 'assests/images/Blanck_Canvas/Mobile_Sprites/Crouch_button_Sprite.webp';
+        const SPRITE_STANDING = 'assests/images/Blanck_Canvas/Mobile_Sprites/Standing_Button_Sprite.webp';
+
+        let isMouseActive = true;
+        let mouseActivityTimeout;
+
+
+        window.onload = function () {
+            init();
+            animate();
+            loadingScreen.style.display = 'flex';
+            updateInstructions();
+        };
+
+        function init() {
+            loadingScreen = document.getElementById('loading-screen');
+            fpsCounterElement = document.getElementById('fps-counter');
+            darknessOverlayElement = document.getElementById('darkness-overlay');
+            warningTextElement = document.getElementById('warning-text');
+            instructionsElement = document.getElementById('instructions');
+            orientationMessage = document.getElementById('orientation-message');
+            announcementContainer = document.getElementById('announcement-container');
+            mobileControlsElement = document.getElementById('mobile-controls');
+            joystickContainer = document.getElementById('joystick-container');
+            joystick = document.getElementById('joystick');
+
+            sprintSpriteDisplayElement = document.getElementById('sprint-sprite-display');
+            crouchSpriteDisplayElement = document.getElementById('crouch-sprite-display');
+            flyingSpriteDisplayElement = document.getElementById('flying-sprite-display');
+
+            if (sprintSpriteDisplayElement) sprintSpriteDisplayElement.style.backgroundImage = `url(${SPRITE_SPRINT})`;
+            if (crouchSpriteDisplayElement) crouchSpriteDisplayElement.style.backgroundImage = `url(${SPRITE_CROUCH})`;
+
+            const jumpButton = document.getElementById('jump-button');
+            if (jumpButton) {
+                jumpButton.addEventListener('touchstart', (e) => { e.preventDefault(); onButtonPress('Space', true); updateButtonActiveState('jump-button', true); });
+                jumpButton.addEventListener('touchend', (e) => { e.preventDefault(); onButtonPress('Space', false); updateButtonActiveState('jump-button', false); });
+            }
+
+            const crouchButton = document.getElementById('crouch-button');
+            if (crouchButton) {
+                crouchButton.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (isMobileDevice()) {
+                        if (isFlying) {
+                            keysPressed['ControlLeft'] = true;
+                            updateButtonActiveState('crouch-button', true);
+                        } else {
+                            toggleCrouch();
+                        }
+                        updateButtonSprites();
+                    }
+                }, { passive: false });
+                crouchButton.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    if (isMobileDevice() && isFlying) {
+                        keysPressed['ControlLeft'] = false
+                        updateButtonActiveState('crouch-button', false);
+                    }
+                }, { passive: false });
+            }
+
+
+            document.getElementById('sprint-button').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (isMobileDevice()) {
+                    toggleSprint();
+                }
+            }, { passive: false });
+
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0A0A2A);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2500);
+            camera.position.set(0, normalCameraHeight, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+
+            const hemiLight = new THREE.HemisphereLight(0xADD8E6, 0x1A1A3A, 0.5);
+            scene.add(hemiLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xC0C0C0, 0.3);
+            directionalLight.position.set(100, 200, 100);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 500;
+            directionalLight.shadow.camera.left = -200;
+            directionalLight.shadow.camera.right = 200;
+            directionalLight.shadow.camera.top = 200;
+            directionalLight.shadow.camera.bottom = -200;
+            scene.add(directionalLight);
+
+            const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
+            groundGeometry.rotateX(-Math.PI / 2);
+            const groundMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            createInstancedGrid();
+            createStarfield();
+            createMoon(directionalLight.position);
+            setupEventListeners();
+            updateMobileControlsVisibility();
+            checkOrientation();
+            updateButtonSprites();
+            updateCursorVisibility();
+        }
+
+        function createInstancedGrid() {
+            const plusSignSpacing = 20;
+            const crossLength = 8;
+            const crossWidth = 1;
+            const crossHeight = 0.1;
+            const connectingBarWidth = 0.5;
+            const connectingBarHeight = 0.1;
+            const connectingBarLength = plusSignSpacing - crossLength;
+
+            const numInstancesX = Math.floor(groundSize / plusSignSpacing) + 1;
+            const numInstancesZ = Math.floor(groundSize / plusSignSpacing) + 1;
+            const totalInstances = numInstancesX * numInstancesZ;
+
+            const startX = -groundSize / 2 + plusSignSpacing / 2;
+            const startZ = -groundSize / 2 + plusSignSpacing / 2;
+
+            const patternMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+
+            const horizontalCrossGeometry = new THREE.BoxGeometry(crossLength, crossHeight, crossWidth);
+            const verticalCrossGeometry = new THREE.BoxGeometry(crossWidth, crossHeight, crossLength);
+
+            const horizontalBarGeometry = new THREE.BoxGeometry(connectingBarLength, connectingBarHeight, connectingBarWidth);
+            const verticalBarGeometry = new THREE.BoxGeometry(connectingBarWidth, connectingBarHeight, connectingBarLength);
+
+            const hCrossInstancedMesh = new THREE.InstancedMesh(horizontalCrossGeometry, patternMaterial, totalInstances);
+            const vCrossInstancedMesh = new THREE.InstancedMesh(verticalCrossGeometry, patternMaterial, totalInstances);
+            const horizontalBarInstancedMesh = new THREE.InstancedMesh(horizontalBarGeometry, patternMaterial, totalInstances);
+            const verticalBarInstancedMesh = new THREE.InstancedMesh(verticalBarGeometry, patternMaterial, totalInstances);
+
+            hCrossInstancedMesh.castShadow = false;
+            vCrossInstancedMesh.castShadow = false;
+            horizontalBarInstancedMesh.castShadow = false;
+            verticalBarInstancedMesh.castShadow = false;
+
+            hCrossInstancedMesh.receiveShadow = true;
+            vCrossInstancedMesh.receiveShadow = true;
+            horizontalBarInstancedMesh.receiveShadow = true;
+            verticalBarInstancedMesh.receiveShadow = true;
+
+            const dummy = new THREE.Object3D();
+            let instanceIndex = 0;
+
+            for (let i = 0; i < numInstancesX; i++) {
+                for (let j = 0; j < numInstancesZ; j++) {
+                    const currentX = startX + i * plusSignSpacing;
+                    const currentZ = startZ + j * plusSignSpacing;
+
+                    dummy.position.set(currentX, 0, currentZ);
+                    dummy.updateMatrix();
+                    hCrossInstancedMesh.setMatrixAt(instanceIndex, dummy.matrix);
+                    vCrossInstancedMesh.setMatrixAt(instanceIndex, dummy.matrix);
+
+                    if (i < numInstancesX - 1) {
+                        dummy.position.set(currentX + crossLength / 2 + connectingBarLength / 2, 0, currentZ);
+                        dummy.updateMatrix();
+                        horizontalBarInstancedMesh.setMatrixAt(instanceIndex, dummy.matrix);
+                    }
+
+                    if (j < numInstancesZ - 1) {
+                        dummy.position.set(currentX, 0, currentZ + crossLength / 2 + connectingBarLength / 2);
+                        dummy.updateMatrix();
+                        verticalBarInstancedMesh.setMatrixAt(instanceIndex, dummy.matrix);
+                    }
+                    instanceIndex++;
+                }
+            }
+            scene.add(hCrossInstancedMesh, vCrossInstancedMesh, horizontalBarInstancedMesh, verticalBarInstancedMesh);
+        }
+
+        function createStarfield() {
+            const starGeometry = new THREE.BufferGeometry();
+            const numberOfStars = 5000;
+            const starfieldRadius = 2000;
+            const starVertices = new Float32Array(numberOfStars * 3);
+            const starOpacities = new Float32Array(numberOfStars);
+            const starSizes = new Float32Array(numberOfStars);
+            const starTwinkleOffsets = new Float32Array(numberOfStars);
+
+            for (let i = 0; i < numberOfStars; i++) {
+                const i3 = i * 3;
+                const u = Math.random();
+                const v = Math.random();
+                const theta = 2 * Math.PI * u;
+                const phi = Math.acos(2 * v - 1);
+                starVertices[i3] = starfieldRadius * Math.sin(phi) * Math.cos(theta);
+                starVertices[i3 + 1] = starfieldRadius * Math.cos(phi);
+                starVertices[i3 + 2] = starfieldRadius * Math.sin(phi) * Math.sin(theta);
+                starOpacities[i] = 0.5 + Math.random() * 0.5;
+                starSizes[i] = 0.5 + Math.random() * 1.5;
+                starTwinkleOffsets[i] = Math.random() * Math.PI * 2;
+            }
+
+            starGeometry.setAttribute('position', new THREE.BufferAttribute(starVertices, 3));
+            starGeometry.setAttribute('opacity', new THREE.BufferAttribute(starOpacities, 1));
+            starGeometry.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
+            starGeometry.setAttribute('twinkleOffset', new THREE.BufferAttribute(starTwinkleOffsets, 1));
+
+            const starMaterial = new THREE.ShaderMaterial({
+                uniforms: { time: { value: 0.0 }, pointSize: { value: 2.0 } },
+                vertexShader: `
+                    attribute float opacity;
+                    attribute float size;
+                    attribute float twinkleOffset; /* Corrected declaration */
+                    uniform float time;
+                    varying float vOpacity;
+                    void main() {
+                        float twinkleFactor = sin(time * 2.0 + twinkleOffset) * 0.5 + 0.5;
+                        vOpacity = opacity * twinkleFactor;
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        gl_PointSize = size * (200.0 / -mvPosition.z);
+                        gl_Position = projectionMatrix * mvPosition;
+                    }`,
+                fragmentShader: `
+                    varying float vOpacity;
+                    void main() {
+                        float r = dot(gl_PointCoord - 0.5, gl_PointCoord - 0.5);
+                        if (r > 0.25) discard;
+                        gl_FragColor = vec4(1.0, 1.0, 1.0, vOpacity);
+                    }`,
+                blending: THREE.AdditiveBlending, depthWrite: false, transparent: true
+            });
+
+            stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+        }
+
+        function createMoon(lightPosition) {
+            const moonGeometry = new THREE.SphereGeometry(20, 64, 64);
+            const moonMaterial = new THREE.MeshStandardMaterial({
+                color: 0xA9A9A9, emissive: 0xFFFFAA, emissiveIntensity: 0.5,
+                roughness: 0.9, metalness: 0.0
+            });
+            moon = new THREE.Mesh(moonGeometry, moonMaterial);
+            moon.position.copy(lightPosition).multiplyScalar(7);
+            moon.castShadow = false;
+            moon.receiveShadow = false;
+            scene.add(moon);
+        }
+
+        function setupEventListeners() {
+            document.addEventListener('mousemove', onDocumentMouseMove);
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            document.body.addEventListener('click', () => {
+                if (!isPointerLocked && !isMobileDevice()) {
+                    try {
+                        renderer.domElement.requestPointerLock();
+                    } catch (e) {
+                        console.error("Error requesting pointer lock:", e);
+                        console.warn("If you are seeing this error, it might be due to browser security restrictions. Try serving the HTML file via a web server.");
+                    }
+                }
+            });
+            document.addEventListener('pointerlockchange', onPointerLockChange);
+            document.addEventListener('pointerlockerror', (e) => console.error('Pointer Lock Error:', e));
+
+            if (isMobileDevice()) {
+                document.body.removeEventListener('click', () => { if (!isPointerLocked) renderer.domElement.requestPointerLock(); });
+
+                joystickContainer.addEventListener('touchstart', onJoystickTouchStart, { passive: false });
+                joystickContainer.addEventListener('touchmove', onJoystickTouchMove, { passive: false });
+                joystickContainer.addEventListener('touchend', onJoystickTouchEnd, { passive: false });
+
+                document.addEventListener('touchstart', onDocumentTouchStart, { passive: false });
+                document.addEventListener('touchmove', onDocumentTouchMove, { passive: false });
+                document.addEventListener('touchend', onDocumentTouchEnd, { passive: false });
+
+                window.addEventListener('orientationchange', checkOrientation);
+                document.addEventListener('fullscreenchange', updateMobileControlsVisibility);
+                document.addEventListener('webkitfullscreenchange', updateMobileControlsVisibility);
+                document.addEventListener('mozfullscreenchange', updateMobileControlsVisibility);
+                document.addEventListener('MSFullscreenChange', updateMobileControlsVisibility);
+            }
+
+            window.addEventListener('resize', onWindowResize, false);
+
+            window.addEventListener("gamepadconnected", (e) => {
+                console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+                    e.gamepad.index, e.gamepad.id,
+                    e.gamepad.buttons.length, e.gamepad.axes.length);
+                gamepadIndex = e.gamepad.index;
+                const currentTime = performance.now();
+                if (currentInputType !== 'gamepad' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                    currentInputType = 'gamepad';
+                    lastInputTypeChangeTime = currentTime;
+                    updateInstructions();
+                    updateCursorVisibility();
+                }
+            });
+
+            window.addEventListener("gamepaddisconnected", (e) => {
+                console.log("Gamepad disconnected from index %d: %s",
+                    e.gamepad.index, e.gamepad.id);
+                if (gamepadIndex === e.gamepad.index) {
+                    gamepadIndex = -1;
+                }
+                const currentTime = performance.now();
+                if (!isMobileDevice() && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                    currentInputType = 'keyboard';
+                    lastInputTypeChangeTime = currentTime;
+                    updateInstructions();
+                    updateCursorVisibility();
+                }
+            });
+        }
+
+        function isMobileDevice() {
+            const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            return isMobile;
+        }
+
+        function isGamepadConnected() {
+            const gamepads = navigator.getGamepads();
+            for (let i = 0; i < gamepads.length; i++) {
+                if (gamepads[i]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function updateInstructions() {
+            let instructionsText = "";
+            const currentTime = performance.now();
+
+            if (isMobileDevice()) {
+                instructionsText = `
+                    Tap to Enter!
+                `;
+                mobileControlsElement.style.display = 'flex';
+                if (currentInputType !== 'mobile' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                    currentInputType = 'mobile';
+                    lastInputTypeChangeTime = currentTime;
+                }
+            } else if (isGamepadConnected()) {
+                instructionsText = `
+                    Press START to enter.
+                    <br>
+                    L Joystick to move.
+                    <br>
+                    R Joystick to look around.
+                    <br>
+                    X to jump.
+                    <br>
+                    O to Crouch.
+                    <br>
+                    Square to Sprint.
+                `;
+                mobileControlsElement.style.display = 'none';
+                if (currentInputType !== 'gamepad' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                    currentInputType = 'gamepad';
+                    lastInputTypeChangeTime = currentTime;
+                }
+            } else {
+                instructionsText = `
+                    Click to enter!
+                    <br>
+                    Use Arrow Keys or WASD to move
+                    <br>
+                    Press ESC to release mouse
+                    <br>
+                    Hold SHIFT for Sprint
+                    <br>
+                    Hold CTRL for Crouch
+                    <br>
+                    Press SPACE to Jump
+                    <br>
+                `;
+                mobileControlsElement.style.display = 'none';
+                if (currentInputType !== 'keyboard' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                    currentInputType = 'keyboard';
+                    lastInputTypeChangeTime = currentTime;
+                }
+            }
+            instructionsElement.innerHTML = instructionsText;
+        }
+
+
+        function updateMobileControlsVisibility() {
+            if (isMobileDevice()) {
+                const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+
+                if (isFullscreen) {
+                    mobileControlsElement.style.display = 'flex';
+                    mobileControlsElement.classList.add('active');
+                    updateButtonSprites();
+                } else {
+                    mobileControlsElement.style.display = 'none';
+                    mobileControlsElement.classList.remove('active');
+                }
+            } else {
+                mobileControlsElement.style.display = 'none';
+                mobileControlsElement.classList.remove('active');
+            }
+        }
+
+        function checkOrientation() {
+            if (isMobileDevice()) {
+                if (window.innerHeight > window.innerWidth) {
+                    orientationMessage.style.display = 'flex';
+                } else {
+                    orientationMessage.style.display = 'none';
+                }
+            } else {
+                orientationMessage.style.display = 'none';
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            if (isMobileDevice()) {
+                checkOrientation();
+                updateMobileControlsVisibility();
+            }
+        }
+
+        function onDocumentMouseMove(event) {
+            if (isPointerLocked) {
+                cameraYaw -= event.movementX * mouseSensitivity;
+                cameraPitch -= event.movementY * mouseSensitivity;
+                cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
+            }
+
+            const currentTime = performance.now();
+            if (currentInputType !== 'keyboard' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                currentInputType = 'keyboard';
+                lastInputTypeChangeTime = currentTime;
+                updateInstructions();
+            }
+
+            isMouseActive = true;
+            clearTimeout(mouseActivityTimeout);
+            mouseActivityTimeout = setTimeout(() => {
+                isMouseActive = false;
+                updateCursorVisibility();
+            }, 1000);
+
+            updateCursorVisibility();
+        }
+
+        function onDocumentTouchStart(event) {
+            if (isMobileDevice() && !document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+                const element = document.body;
+                try {
+                    if (element.requestFullscreen) {
+                        element.requestFullscreen();
+                    } else if (element.webkitRequestFullscreen) { /* Safari */
+                        element.webkitRequestFullscreen();
+                    } else if (element.msRequestFullscreen) { /* IE11 */
+                        element.msRequestFullscreen();
+                    } else if (element.mozRequestFullScreen) { /* Firefox */
+                        element.mozRequestFullScreen();
+                    }
+                } catch (e) {
+                    console.error("Error requesting fullscreen:", e);
+                    console.warn("If you are seeing this error, it might be due to browser security restrictions. Please ensure you are serving the HTML file via a web server.");
+                }
+            }
+
+            if (isMobileDevice() && !hasMobileInteractionStarted) {
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.pointerEvents = 'none';
+                hasMobileInteractionStarted = true;
+            }
+
+            if (isPointerLocked || (isMobileDevice() && hasMobileInteractionStarted)) {
+                for (let i = 0; i < event.changedTouches.length; i++) {
+                    const touch = event.changedTouches[i];
+                    if (!joystickContainer.contains(touch.target) && !touch.target.classList.contains('action-button')) {
+                        touchCameraActive = true;
+                        lastTouchX = touch.clientX;
+                        lastTouchY = touch.clientY;
+                        touchIdentifierForCamera = touch.identifier;
+                        break;
+                    }
+                }
+            }
+        }
+
+        function onDocumentTouchMove(event) {
+            if (touchCameraActive) {
+                event.preventDefault();
+                let currentTouch = null;
+                for (let i = 0; i < event.changedTouches.length; i++) {
+                    if (event.changedTouches[i].identifier === touchIdentifierForCamera) {
+                        currentTouch = event.changedTouches[i];
+                        break;
+                    }
+                }
+
+                if (currentTouch) {
+                    const movementX = currentTouch.clientX - lastTouchX;
+                    const movementY = currentTouch.clientY - lastTouchY;
+                    cameraYaw -= movementX * mouseSensitivity * 2;
+                    cameraPitch -= movementY * mouseSensitivity * 2;
+                    cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
+                    lastTouchX = currentTouch.clientX;
+                    lastTouchY = currentTouch.clientY;
+                }
+            }
+        }
+
+        function onDocumentTouchEnd(event) {
+            for (let i = 0; i < event.changedTouches.length; i++) {
+                if (event.changedTouches[i].identifier === touchIdentifierForCamera) {
+                    touchCameraActive = false;
+                    touchIdentifierForCamera = null;
+                    break;
+                }
+            }
+        }
+
+        function onJoystickTouchStart(event) {
+            event.preventDefault();
+            const touch = event.changedTouches[0];
+            joystickActive = true;
+            joystickStartX = touch.clientX;
+            joystickStartY = touch.clientY;
+            touchIdentifierForJoystick = touch.identifier;
+            joystick.style.transition = 'none';
+        }
+
+        function onJoystickTouchMove(event) {
+            if (!joystickActive) return;
+            event.preventDefault();
+
+            let currentTouch = null;
+            for (let i = 0; i < event.changedTouches.length; i++) {
+                if (event.changedTouches[i].identifier === touchIdentifierForJoystick) {
+                    currentTouch = event.changedTouches[i];
+                    break;
+                }
+            }
+
+            if (currentTouch) {
+                joystickCurrentX = currentTouch.clientX;
+                joystickCurrentY = currentTouch.clientY;
+
+                const deltaX = joystickCurrentX - joystickStartX;
+                const deltaY = joystickCurrentY - joystickStartY;
+
+                const maxDistance = joystickContainer.offsetWidth / 2 - joystick.offsetWidth / 2;
+                const distance = Math.min(maxDistance, Math.sqrt(deltaX * deltaX + deltaY * deltaY));
+                const angle = Math.atan2(deltaY, deltaX);
+
+                const newPosX = distance * Math.cos(angle);
+                const newPosY = distance * Math.sin(angle);
+
+                joystick.style.transform = `translate(-50%, -50%) translate(${newPosX}px, ${newPosY}px)`;
+
+                const normalizedX = newPosX / maxDistance;
+                const normalizedY = newPosY / maxDistance;
+
+                keysPressed['KeyW'] = normalizedY < -0.1;
+                keysPressed['KeyS'] = normalizedY > 0.1;
+                keysPressed['KeyA'] = normalizedX < -0.1;
+                keysPressed['KeyD'] = normalizedX > 0.1;
+            }
+        }
+
+        function onJoystickTouchEnd(event) {
+            for (let i = 0; i < event.changedTouches.length; i++) {
+                if (event.changedTouches[i].identifier === touchIdentifierForJoystick) {
+                    joystickActive = false;
+                    touchIdentifierForJoystick = null;
+                    joystick.style.transition = 'transform 0.1s ease-out';
+                    joystick.style.transform = 'translate(-50%, -50%)';
+                    keysPressed['KeyW'] = false;
+                    keysPressed['KeyS'] = false;
+                    keysPressed['KeyA'] = false;
+                    keysPressed['KeyD'] = false;
+                    break;
+                }
+            }
+        }
+
+        function updateButtonActiveState(buttonId, isActive) {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                if (isActive) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            }
+        }
+
+        function toggleSprint() {
+            isSprintingToggled = !isSprintingToggled;
+            if (isSprintingToggled) {
+                isCrouchingToggled = false;
+                updateButtonActiveState('crouch-button', false);
+            }
+            updateButtonActiveState('sprint-button', isSprintingToggled);
+            keysPressed['ShiftLeft'] = isSprintingToggled;
+            keysPressed['ControlLeft'] = isCrouchingToggled;
+            updateButtonSprites();
+        }
+
+        function toggleCrouch() {
+            isCrouchingToggled = !isCrouchingToggled;
+            if (isCrouchingToggled) {
+                isSprintingToggled = false;
+                updateButtonActiveState('sprint-button', false);
+            }
+            updateButtonActiveState('crouch-button', isCrouchingToggled);
+            keysPressed['ShiftLeft'] = isSprintingToggled;
+            keysPressed['ControlLeft'] = isCrouchingToggled;
+            updateButtonSprites();
+        }
+
+        function onButtonPress(key, isPressed) {
+            if (key === 'Space') {
+                keysPressed[key] = isPressed;
+                if (isPressed) {
+                    const currentTime = performance.now();
+                    if (currentTime - lastSpacePressTime < doubleTapThreshold) {
+                        isFlying = !isFlying;
+                        verticalVelocity = 0;
+                        isJumping = false;
+                        lastSpacePressTime = 0;
+                        isCrouchingToggled = false;
+                        updateButtonActiveState('crouch-button', false);
+                        updateButtonSprites();
+                    } else {
+                        lastSpacePressTime = currentTime;
+                        if (!isFlying && !isJumping && Math.abs(camera.position.y - currentBaseCameraHeight) < 0.1) {
+                            isJumping = true;
+                            verticalVelocity = jumpStrength;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        function onKeyDown(event) {
+            const gameControlKeys = ['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'ShiftLeft', 'ControlLeft', 'Escape', 'KeyM'];
+            if (gameControlKeys.includes(event.code)) event.preventDefault();
+
+            keysPressed[event.code] = true;
+
+            if (!isMobileDevice()) {
+                if (event.code === 'ShiftLeft') {
+                    keysPressed['ControlLeft'] = false;
+                    isCrouchingToggled = false;
+                    updateButtonActiveState('crouch-button', false);
+                } else if (event.code === 'ControlLeft') {
+                    keysPressed['ShiftLeft'] = false;
+                    isSprintingToggled = false;
+                    updateButtonActiveState('sprint-button', false);
+                }
+            }
+
+            const currentTime = performance.now();
+            if (currentInputType !== 'keyboard' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                currentInputType = 'keyboard';
+                lastInputTypeChangeTime = currentTime;
+                updateInstructions();
+            }
+
+            if (event.code === 'Space' && !event.repeat) {
+                spacebarHeld = true;
+                const currentTime = performance.now();
+                if (currentTime - lastSpacePressTime < doubleTapThreshold) {
+                    isFlying = !isFlying;
+                    verticalVelocity = 0;
+                    isJumping = false;
+                    lastSpacePressTime = 0;
+                    isCrouchingToggled = false;
+                    updateButtonActiveState('crouch-button', false);
+                    updateButtonSprites();
+                } else {
+                    lastSpacePressTime = currentTime;
+                    if (!isFlying && !isJumping && Math.abs(camera.position.y - currentBaseCameraHeight) < 0.1) {
+                        isJumping = true;
+                        verticalVelocity = jumpStrength;
+                    }
+                }
+            }
+            if (event.code === 'Escape') {
+                document.exitPointerLock();
+            }
+
+            // Trigger announcement
+            if (event.code === 'KeyM') {
+                createAnnouncement("Testing POYO", "assests/images/Blanck_Canvas/Global_Sprites/bruh.gif");
+            }
+        }
+
+        function onKeyUp(event) {
+            keysPressed[event.code] = false;
+
+            if (!isMobileDevice()) {
+                if (event.code === 'ShiftLeft') {
+                    keysPressed['ShiftLeft'] = false;
+                } else if (event.code === 'ControlLeft') {
+                    keysPressed['ControlLeft'] = false;
+                }
+            }
+
+            if (event.code === 'Space') {
+                spacebarHeld = false;
+            }
+        }
+
+        function onPointerLockChange() {
+            if (document.pointerLockElement === renderer.domElement) {
+                isPointerLocked = true;
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.pointerEvents = 'none';
+                renderer.domElement.style.cursor = 'none';
+            } else {
+                isPointerLocked = false;
+                loadingScreen.style.opacity = '1';
+                loadingScreen.style.pointerEvents = 'auto';
+                renderer.domElement.style.cursor = 'grab';
+            }
+            updateCursorVisibility();
+        }
+
+        function updatePlayer(deltaTime, speedLimitFactor) {
+            let currentSpeedMultiplier = 1.0;
+            let targetBaseHeight = normalCameraHeight;
+
+            if (keysPressed['ShiftLeft'] || keysPressed['ShiftRight']) {
+                currentSpeedMultiplier = sprintMultiplier;
+            } else if (keysPressed['ControlLeft'] || keysPressed['ControlRight']) {
+                currentSpeedMultiplier = crouchMultiplier;
+                targetBaseHeight = crouchCameraHeight;
+            }
+
+
+            let actualMoveSpeed = baseMoveSpeed * deltaTime * currentSpeedMultiplier * speedLimitFactor;
+
+            let gamepad = null;
+            if (gamepadIndex !== -1) {
+                const gamepads = navigator.getGamepads();
+                gamepad = gamepads[gamepadIndex];
+            }
+
+            let lookX = 0;
+            let lookY = 0;
+            let gamepadJumpPressed = false;
+            let gamepadFlyUp = false;
+            let gamepadFlyDown = false;
+
+            const forward = new THREE.Vector3();
+            camera.getWorldDirection(forward);
+            forward.y = 0;
+            forward.normalize();
+            const right = new THREE.Vector3().crossVectors(camera.up, forward).negate();
+            let moveDirection = new THREE.Vector3();
+
+            if (keysPressed['ArrowUp'] || keysPressed['KeyW']) moveDirection.addScaledVector(forward, 1);
+            if (keysPressed['ArrowDown'] || keysPressed['KeyS']) moveDirection.addScaledVector(forward, -1);
+            if (keysPressed['ArrowLeft'] || keysPressed['KeyA']) moveDirection.addScaledVector(right, -1);
+            if (keysPressed['ArrowRight'] || keysPressed['KeyD']) moveDirection.addScaledVector(right, 1);
+
+
+            if (gamepad) {
+                if (!isMouseActive && !isPointerLocked) {
+                    renderer.domElement.style.cursor = 'none';
+                }
+
+                keysPressed['Space'] = gamepad.buttons[0] && gamepad.buttons[0].pressed;
+                gamepadFlyUp = keysPressed['Space'];
+
+                const leftStickX = gamepad.axes[0];
+                const leftStickY = gamepad.axes[1];
+
+                if (Math.abs(leftStickY) > gamepadDeadzone) {
+                    moveDirection.addScaledVector(forward, -leftStickY);
+                }
+                if (Math.abs(leftStickX) > gamepadDeadzone) {
+                    moveDirection.addScaledVector(right, leftStickX);
+                }
+
+                const rightStickX = gamepad.axes[2];
+                const rightStickY = gamepad.axes[3];
+
+                if (Math.abs(rightStickX) > gamepadDeadzone) {
+                    lookX = rightStickX;
+                }
+                if (Math.abs(rightStickY) > gamepadDeadzone) {
+                    lookY = rightStickY;
+                }
+
+                gamepadJumpPressed = gamepad.buttons[0] && gamepad.buttons[0].pressed;
+                if (gamepadJumpPressed && !gamepadButton0PreviouslyPressed) {
+                    const currentTime = performance.now();
+                    if (currentTime - lastGamepadJumpPressTime < doubleTapThreshold) {
+                        isFlying = !isFlying;
+                        verticalVelocity = 0;
+                        isJumping = false;
+                        lastGamepadJumpPressTime = 0;
+                        isCrouchingToggled = false;
+                        updateButtonActiveState('crouch-button', false);
+                        updateButtonSprites();
+                    } else {
+                        lastGamepadJumpPressTime = currentTime;
+                        if (!isFlying && !isJumping && Math.abs(camera.position.y - currentBaseCameraHeight) < 0.1) {
+                            isJumping = true;
+                            verticalVelocity = jumpStrength;
+                        }
+                    }
+                }
+                gamepadButton0PreviouslyPressed = gamepadJumpPressed;
+
+
+                let gamepadButton1CurrentPressed = gamepad.buttons[1] && gamepad.buttons[1].pressed;
+                if (isFlying) {
+                    keysPressed['ControlLeft'] = gamepadButton1CurrentPressed;
+                    gamepadFlyDown = gamepadButton1CurrentPressed;
+                } else {
+                    if (gamepadButton1CurrentPressed && !gamepadButton1PreviouslyPressed) {
+                        isCrouchingToggled = !isCrouchingToggled;
+                        if (isCrouchingToggled) {
+                            isSprintingToggled = false;
+                        }
+                        keysPressed['ShiftLeft'] = isSprintingToggled;
+                        keysPressed['ControlLeft'] = isCrouchingToggled;
+                    }
+                }
+                gamepadButton1PreviouslyPressed = gamepadButton1CurrentPressed;
+
+                let gamepadButton2CurrentPressed = gamepad.buttons[2] && gamepad.buttons[2].pressed;
+                if (gamepadButton2CurrentPressed && !gamepadButton2PreviouslyPressed) {
+                    isSprintingToggled = !isSprintingToggled;
+                    if (isSprintingToggled) {
+                        isCrouchingToggled = false;
+                    }
+                    keysPressed['ShiftLeft'] = isSprintingToggled;
+                    keysPressed['ControlLeft'] = isCrouchingToggled;
+                }
+                gamepadButton2PreviouslyPressed = gamepadButton2CurrentPressed;
+
+
+                let gamepadStartPressed = gamepad.buttons[9] && gamepad.buttons[9].pressed;
+                if (gamepadStartPressed && !gamepadStartPreviouslyPressed) {
+                    isLoadingScreenVisible = !isLoadingScreenVisible;
+                    if (isLoadingScreenVisible) {
+                        loadingScreen.style.opacity = '1';
+                        loadingScreen.style.pointerEvents = 'auto';
+                    } else {
+                        loadingScreen.style.opacity = '0';
+                        loadingScreen.style.pointerEvents = 'none';
+                    }
+                }
+                gamepadStartPreviouslyPressed = gamepadStartPressed;
+
+                cameraYaw -= lookX * mouseSensitivity * 25;
+                cameraPitch -= lookY * mouseSensitivity * 25;
+                cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
+
+                actualMoveSpeed = baseMoveSpeed * deltaTime * currentSpeedMultiplier * speedLimitFactor;
+            }
+
+
+            if (isFlying) {
+                if (keysPressed['Space'] || gamepadFlyUp) {
+                    camera.position.y += baseMoveSpeed * flySpeedMultiplier * deltaTime;
+                }
+                if (keysPressed['ControlLeft'] || gamepadFlyDown) {
+                    camera.position.y -= baseMoveSpeed * flySpeedMultiplier * deltaTime;
+                }
+                verticalVelocity = 0;
+                camera.position.y = Math.max(0.1, camera.position.y);
+            } else {
+                currentBaseCameraHeight += (targetBaseHeight - currentBaseCameraHeight) * 0.1;
+                verticalVelocity += gravity * deltaTime;
+                camera.position.y += verticalVelocity * deltaTime;
+                if (camera.position.y <= currentBaseCameraHeight) {
+                    camera.position.y = currentBaseCameraHeight;
+                    verticalVelocity = 0;
+                    isJumping = false;
+                }
+            }
+
+            if (!isFlying && !isJumping && Math.abs(camera.position.y - currentBaseCameraHeight) < 0.1) {
+                if (keysPressed['Space'] && !spacebarHeld) {
+                    isJumping = true;
+                    verticalVelocity = jumpStrength;
+                }
+            }
+
+            if (moveDirection.lengthSq() > 0) {
+                moveDirection.normalize();
+                camera.position.addScaledVector(moveDirection, actualMoveSpeed);
+            }
+        }
+
+        function updateCursorVisibility() {
+            if (isPointerLocked) {
+                renderer.domElement.style.cursor = 'none';
+            } else if (isGamepadConnected()) {
+                renderer.domElement.style.cursor = isMouseActive ? 'grab' : 'none';
+            } else {
+                renderer.domElement.style.cursor = 'grab';
+            }
+        }
+
+        function updateButtonSprites() {
+            if (!isMobileDevice()) {
+                return;
+            }
+
+            const jumpButton = document.getElementById('jump-button');
+            const sprintButton = document.getElementById('sprint-button');
+            const crouchButton = document.getElementById('crouch-button');
+
+            const loadImage = (url, element, fallbackText) => {
+                const img = new Image();
+                img.onload = () => {
+                    element.style.backgroundImage = `url(${url})`;
+                    element.textContent = '';
+                };
+                img.onerror = (error) => {
+                    element.style.backgroundImage = 'none';
+                    element.style.backgroundColor = 'red';
+                    element.textContent = 'ERROR';
+                    console.error(`Failed to load sprite for ${element.id} from ${url}:`, error);
+                    console.error("Please ensure the image path is correct and the file exists, and that you are serving the HTML file via a web server.");
+                };
+                img.src = url;
+            };
+
+            try {
+                if (jumpButton) {
+                    jumpButton.classList.add('sprite-button');
+                    const jumpSprite = isFlying ? SPRITE_UP : SPRITE_JUMP;
+                    loadImage(jumpSprite, jumpButton, 'Jump');
+                }
+
+                if (sprintButton) {
+                    sprintButton.classList.add('sprite-button');
+                    loadImage(SPRITE_SPRINT, sprintButton, 'Sprint');
+                }
+
+                if (crouchButton) {
+                    crouchButton.classList.add('sprite-button');
+                    let crouchSprite;
+                    if (isFlying) {
+                        crouchSprite = SPRITE_DOWN;
+                    } else {
+                        crouchSprite = isCrouchingToggled ? SPRITE_STANDING : SPRITE_CROUCH;
+                    }
+                    loadImage(crouchSprite, crouchButton, 'Crouch');
+                }
+            } catch (error) {
+                console.error("Error in updateButtonSprites function:", error);
+            }
+        }
+
+        function updateGamepadSpriteDisplays() {
+            sprintSpriteDisplayElement.style.opacity = '0';
+            sprintSpriteDisplayElement.style.transform = 'translateY(100px)';
+
+            crouchSpriteDisplayElement.style.opacity = '0';
+            crouchSpriteDisplayElement.style.transform = 'translateY(100px)';
+
+            flyingSpriteDisplayElement.style.opacity = '0';
+            flyingSpriteDisplayElement.style.transform = 'translateY(100px)';
+
+            if (!isGamepadConnected()) {
+                return;
+            }
+
+            const baseRightOffset = 30;
+            const spriteWidth = 80;
+            const spacing = 10;
+
+            let currentRightPosition = baseRightOffset;
+
+            const activeSprites = [];
+            if (isSprintingToggled) {
+                activeSprites.push({ element: sprintSpriteDisplayElement, sprite: SPRITE_SPRINT });
+            }
+            if (isCrouchingToggled) {
+                activeSprites.push({ element: crouchSpriteDisplayElement, sprite: SPRITE_CROUCH });
+            }
+            if (isFlying) {
+                let flyingSprite = SPRITE_JUMP;
+                if (keysPressed['Space']) {
+                    flyingSprite = SPRITE_UP;
+                } else if (keysPressed['ControlLeft']) {
+                    flyingSprite = SPRITE_DOWN;
+                }
+                activeSprites.push({ element: flyingSpriteDisplayElement, sprite: flyingSprite });
+            }
+
+            for (let i = 0; i < activeSprites.length; i++) {
+                const spriteInfo = activeSprites[i];
+                spriteInfo.element.style.right = `${currentRightPosition}px`;
+                spriteInfo.element.style.opacity = '1';
+                spriteInfo.element.style.transform = 'translateY(0)';
+                spriteInfo.element.style.backgroundImage = `url(${spriteInfo.sprite})`;
+
+                currentRightPosition += spriteWidth + spacing;
+            }
+        }
+
+        function handleBoundaryEffects() {
+            const currentTime = performance.now();
+            const effectiveBoundaryDistance = Math.max(Math.abs(camera.position.x), Math.abs(camera.position.z), Math.abs(camera.position.y));
+
+            let speedLimitFactor = 1.0;
+            let currentDarknessOpacity = 0;
+            let currentWarningTextOpacity = 0;
+
+            if (effectiveBoundaryDistance > boundaryRadius) {
+                let distanceBeyondBoundary = effectiveBoundaryDistance - boundaryRadius;
+
+                if (distanceBeyondBoundary > slowdownStartDistance) {
+                    let progress = Math.min(1, (distanceBeyondBoundary - slowdownStartDistance) / (maxSlowdownDistance - slowdownStartDistance));
+                    speedLimitFactor = 1 - progress;
+                }
+
+                if (distanceBeyondBoundary > fadeEffectStartDistance) {
+                    currentDarknessOpacity = Math.min(1, (distanceBeyondBoundary - fadeEffectStartDistance) / (maxFadeDistance - fadeEffectStartDistance));
+                    currentWarningTextOpacity = currentDarknessOpacity;
+                }
+
+                if (speedLimitFactor < 0.01 && effectiveBoundaryDistance >= (boundaryRadius + slowdownStartDistance)) {
+                    if (!isStoppedInBoundary) {
+                        isStoppedInBoundary = true;
+                        stopTime = currentTime;
+                        currentBOBSentence = BOBSentences[Math.floor(Math.random() * BOBSentences.length)];
+                    }
+                    darknessOverlayElement.style.opacity = 1;
+                    warningTextElement.style.opacity = 1;
+                    warningTextElement.textContent = currentBOBSentence;
+                } else {
+                    if (isStoppedInBoundary) {
+                        isStoppedInBoundary = false;
+                        stopTime = 0;
+                    }
+                    darknessOverlayElement.style.opacity = currentDarknessOpacity;
+                    warningTextElement.style.opacity = currentWarningTextOpacity;
+
+                    if (currentWarningTextOpacity > 0 && currentTime - lastSentenceChangeTime > sentenceChangeInterval) {
+                        currentBOBSentence = BOBSentences[Math.floor(Math.random() * BOBSentences.length)];
+                        warningTextElement.textContent = currentBOBSentence;
+                        lastSentenceChangeTime = currentTime;
+                    } else if (currentWarningTextOpacity === 0) {
+                        warningTextElement.textContent = "";
+                    }
+                }
+
+                if (isStoppedInBoundary && currentTime - stopTime > 2000) {
+                    camera.position.set(0, normalCameraHeight, 0);
+                    cameraYaw = cameraPitch = verticalVelocity = stopTime = lastSentenceChangeTime = 0;
+                    isJumping = isFlying = isStoppedInBoundary = spacebarHeld = false;
+                    speedLimitFactor = 1.0;
+                    updateButtonSprites();
+                }
+
+            } else {
+                darknessOverlayElement.style.opacity = 0;
+                warningTextElement.style.opacity = 0;
+                if (isStoppedInBoundary) {
+                    isStoppedInBoundary = false;
+                    stopTime = 0;
+                }
+            }
+            return speedLimitFactor;
+        }
+
+        function createAnnouncement(text, imageUrl) {
+            const announcement = document.createElement('div');
+            announcement.className = 'announcement';
+
+            const textElement = document.createElement('p');
+            textElement.textContent = text;
+
+            const imageElement = document.createElement('img');
+            imageElement.src = imageUrl;
+            imageElement.alt = 'Announcement GIF';
+            imageElement.onerror = () => {
+                console.error(`Failed to load image: ${imageUrl}`);
+                imageElement.style.display = 'none';
+            };
+
+            const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+            corners.forEach(cornerClass => {
+                const cornerElement = document.createElement('span');
+                cornerElement.className = `corner ${cornerClass}`;
+                announcement.appendChild(cornerElement);
+            });
+
+            announcement.appendChild(imageElement);
+            announcement.appendChild(textElement);
+
+            announcementContainer.appendChild(announcement);
+
+            setTimeout(() => {
+                announcement.remove();
+            }, 5000);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const currentTime = performance.now();
+            const deltaTime = (currentTime - lastFrameTime) / 1000;
+            lastFrameTime = currentTime;
+
+            if (currentTime - lastFpsUpdateTime >= fpsUpdateInterval) {
+                const fps = 1 / deltaTime;
+                fpsCounterElement.textContent = `FPS: ${Math.round(fps)}`;
+                lastFpsUpdateTime = currentTime;
+            }
+
+            const speedLimitFactor = handleBoundaryEffects();
+            updatePlayer(deltaTime, speedLimitFactor);
+
+            camera.rotation.order = 'YXZ';
+            camera.rotation.y = cameraYaw;
+            camera.rotation.x = cameraPitch;
+
+            if (stars) {
+                stars.material.uniforms.time.value = clock.getElapsedTime();
+            }
+
+            updateGamepadSpriteDisplays();
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+<!-- Bubby Was Here -->
+
+</html>

@@ -102,13 +102,118 @@
             gap: 1rem;
         }
 
-        .social-icons img {
-            width: 75px;
-            height: auto;
-            border-radius: 5px;
-            transition: transform 0.3s ease;
-            margin-left: 0;
+        .social-icons>div {
+            position: relative;
+            flex-shrink: 0;
         }
+
+        .social-icons>div a {
+            position: relative;
+            display: block;
+            width: 75px;
+            height: 75px;
+            padding: 5px;
+            box-sizing: content-box;
+        }
+
+        .social-icons img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+        }
+
+        .social-text {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            color: rgb(0, 0, 0);
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            z-index: 5;
+        }
+
+        .social-icons>div:hover .social-text {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .social-icons>div::before,
+        .social-icons>div::after,
+        .social-icons>div a::before,
+        .social-icons>div a::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: all 0.25s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            pointer-events: none;
+        }
+
+        .social-icons>div a::before {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+            top: 0;
+            left: 0;
+            transform: translate(0, 0) scale(0.5);
+        }
+
+        .social-icons>div a::after {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+            top: calc(100% - 15px);
+            left: calc(100% - 15px);
+            transform: translate(0, 0) scale(0.5) rotate(180deg);
+        }
+
+        .social-icons>div::before {
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+            top: 0;
+            left: calc(100% - 15px);
+            transform: translate(0, 0) scale(0.5);
+        }
+
+        .social-icons>div::after {
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+            top: calc(100% - 15px);
+            left: 0;
+            transform: translate(0, 0) scale(0.5) rotate(180deg);
+        }
+
+        .social-icons>div:hover a::before {
+            opacity: 1;
+            top: -5px;
+            left: -5px;
+            transform: translate(0, 0) scale(1);
+        }
+
+        .social-icons>div:hover a::after {
+            opacity: 1;
+            top: calc(100% - 10px);
+            left: calc(100% - 10px);
+            transform: translate(0, 0) scale(1) rotate(180deg);
+        }
+
+        .social-icons>div:hover::before {
+            opacity: 1;
+            top: -5px;
+            left: calc(100% - 10px);
+            transform: translate(0, 0) scale(1);
+        }
+
+        .social-icons>div:hover::after {
+            opacity: 1;
+            top: calc(100% - 10px);
+            left: -5px;
+            transform: translate(0, 0) scale(1) rotate(180deg);
+        }
+
 
         .Fiverr:hover,
         .Patreon:hover,
@@ -646,7 +751,7 @@
                 <div class="logo">
                     <div class="image">
                         <a href="index.html" target="_self">
-                            <img src="assests/images/header/logo_image.webp" alt="(error) LOGO image not found">
+                            <img src="assests/images/header/logo_image.webp" alt="(error) image not found">
                         </a>
                     </div>
                     <a href="index.html">
@@ -656,28 +761,33 @@
                 <div class="social-icons">
                     <div class="Youtube">
                         <a href="https://www.youtube.com/channel/UCsM3kc7cmzJ92a3A3y2wunw" target="_blank">
-                            <img src="assests/images/header/Youtube.webp" alt="(error) Social Icon image not found">
+                            <img src="assests/images/header/Youtube.webp" alt="(error) image not found">
+                            <span class="social-text">Subscribe</span>
                         </a>
                     </div>
                     <div class="Fiverr">
                         <a href="HUB(error).html">
-                            <img src="assests/images/header/Fiverr.webp" alt="(error) Social Icon image not found">
+                            <img src="assests/images/header/Fiverr.webp" alt="(error) image not found">
+                            <span class="social-text">Hire me</span>
                         </a>
                     </div>
                     <div class="Patreon">
                         <a href="HUB(error).html" target="_blank">
-                            <img src="assests/images/header/Patreon.webp" alt="(error) Social Icon image not found">
+                            <img src="assests/images/header/Patreon.webp" alt="(error) image not found">
+                            <span class="social-text">Cool Stuff</span>
+                        </a>
+                    </div>
+                    <div class="Discord">
+                        <a href="HUB(error).html" target="_blank">
+                            <img src="assests/images/header/Discord.webp" alt="(error) image not found">
+                            <span class="social-text">Join the community</span>
                         </a>
                     </div>
                     <div class="Paypal">
                         <a href="https://www.paypal.com/paypalme/TheRealCUBIC?country.x=MA&locale.x=en_US"
                             target="_blank">
-                            <img src="assests/images/header/Paypal_me.webp" alt="(error) Social Icon image not found">
-                        </a>
-                    </div>
-                    <div class="Discord">
-                        <a href="HUB(error).html" target="_blank">
-                            <img src="assests/images/header/Discord.webp" alt="(error) Social Icon image not found">
+                            <img src="assests/images/header/Paypal_me.webp" alt="(error) image not found">
+                            <span class="social-text">Donate</span>
                         </a>
                     </div>
                 </div>
@@ -703,7 +813,7 @@
                     <h3><a href="Blank Canvas.html">games</a></h3>
                 </div>
                 <div class="programs">
-                    <h3><a href="HUB(error).html">programs</a></h3>
+                    <h3><a href="Re-alarm.html">programs</a></h3>
                 </div>
                 <div class="miscellaneous">
                     <h3><a href="HUB(error).html">miscellaneous</a></h3>
@@ -876,7 +986,7 @@
     <footer>
         <p class="footer-text">&copy; 2024 CUBIC STUDIO. All rights reserved.</p>
         <a class="version-link" href="hello.html">
-            <p class="version">Alpha D310625</p>
+            <p class="version">Alpha E010825</p>
         </a>
     </footer>
 

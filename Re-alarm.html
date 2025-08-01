@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assests/images/favicon.webp" type="image/x-icon">
+    <title>Re-alarm</title>
+    <script src="javascript_dependencies/Re_alarm/Tailwind.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="javascript_dependencies/Re_alarm/Awesome_Fonts.js">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #E0E0E0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        .container {
+            background-color: #F0F0F0;
+            padding: 30px;
+            border-radius: 0px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+            border: 1px solid #cccccc;
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #currentTimeContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #currentTime {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #1a202c;
+            letter-spacing: -0.05em;
+            transition: color 0.3s ease;
+        }
+
+        .button {
+            padding: 12px 25px;
+            border-radius: 0px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .start-button {
+            background: linear-gradient(145deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .start-button:hover {
+            background: linear-gradient(145deg, #45a049, #3e8e41);
+            transform: translateY(-2px);
+        }
+
+        .stop-button {
+            background: linear-gradient(145deg, #f44336, #da190b);
+            color: white;
+        }
+
+        .stop-button:hover {
+            background: linear-gradient(145deg, #da190b, #c0170a);
+            transform: translateY(-2px);
+        }
+
+        .status-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 20px;
+            color: #2d3748;
+            transition: color 0.3s ease;
+        }
+
+        .status-text.active {
+            color: #4CAF50;
+        }
+
+        .status-text.inactive {
+            color: #f44336;
+        }
+
+        .input-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-group label,
+        .input-group input,
+        .input-group select {
+            color: #4a5568;
+            transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .input-group input,
+        .input-group select {
+            padding: 10px;
+            border-radius: 0px;
+            border: 1px solid #cbd5e0;
+            font-size: 1rem;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+            background-color: #ffffff;
+        }
+
+        .input-group input {
+            width: 80px;
+            text-align: center;
+        }
+
+        #timeLeft {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #4a5568;
+            margin-top: 15px;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #151515;
+        }
+
+        body.dark-mode .container {
+            background-color: #222222;
+            border-color: #444444;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        body.dark-mode #currentTime,
+        body.dark-mode .status-text,
+        body.dark-mode #timeLeft,
+        body.dark-mode .input-group label {
+            color: #F5F5F5;
+        }
+
+        body.dark-mode h1 {
+            color: white;
+        }
+
+        body.dark-mode .input-group input,
+        body.dark-mode .input-group select {
+            background-color: #333333;
+            border-color: #555555;
+            color: #F5F5F5;
+        }
+
+        body.dark-mode .status-text.active {
+            color: #81C784;
+        }
+
+        body.dark-mode .status-text.inactive {
+            color: #EF5350;
+        }
+
+        .settings-buttons-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .settings-button {
+            padding: 10px 15px;
+            border-radius: 0px;
+            background-color: #6b7280;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
+
+        .settings-button:hover {
+            background-color: #4b5563;
+            transform: translateY(-2px);
+        }
+
+        body.dark-mode .settings-button {
+            background-color: #555555;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .settings-button:hover {
+            background-color: #777777;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            text-align: center;
+            border-radius: 0px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 1;
+            right: calc(100% + 10px);
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .settings-button:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .app-description-note {
+            margin-top: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            color: #555;
+            font-size: 0.9rem;
+            text-align: center;
+            border-radius: 0px;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body.dark-mode .app-description-note {
+            background-color: #2a2a2a;
+            border-color: #4a4a4a;
+            color: #cccccc;
+        }
+    </style>
+</head>
+
+<body class="dark-mode">
+    <div class="container">
+        <h1 class="text-2xl font-bold mb-4 text-gray-800">Re-alarm</h1>
+        <div id="currentTimeContainer">
+            <div id="currentTime"></div>
+        </div>
+
+        <div class="input-group">
+            <label for="intervalValue" class="text-gray-700">Alarm every:</label>
+            <input type="number" id="intervalValue" value="1" min="1" class="w-20">
+            <select id="intervalUnit" class="p-2 border rounded-md">
+                <option value="minutes">Minute(s)</option>
+                <option value="hours" selected>Hour(s)</option>
+                <option value="days">Day(s)</option>
+                <option value="weeks">Week(s)</option>
+                <option value="months">Month(s)</option>
+                <option value="years">Year(s)</option>
+            </select>
+        </div>
+
+        <p class="status-text" id="alarmStatus">Alarm: Inactive</p>
+        <p id="timeLeft" class="text-gray-600">Time left for next alarm: --:--:--</p>
+
+        <div class="mt-6 flex justify-center space-x-4">
+            <button id="startButton" class="button start-button">Start Alarm</button>
+            <button id="stopButton" class="button stop-button" disabled>Stop Alarm</button>
+        </div>
+
+        <div class="app-description-note">
+            <p>This application allows you to set recurring alarms at custom intervals (minutes, hours, days, weeks,
+                months, or years). It displays the current time and shows the time remaining until the next alarm. [Made
+                in one hour :]</p>
+        </div>
+    </div>
+
+    <div class="settings-buttons-container">
+        <button id="toggleTimeFormat" class="settings-button">
+            <i class="fas fa-clock"></i>
+            <span class="tooltip-text" data-tooltip-text="Toggle Time Format"></span>
+        </button>
+        <button id="themeToggleButton" class="settings-button">
+            <i class="fas fa-sun"></i>
+            <span class="tooltip-text" data-tooltip-text="Toggle Dark Mode"></span>
+        </button>
+    </div>
+
+    <script>
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const toggleTimeFormatButton = document.getElementById('toggleTimeFormat');
+        const intervalValueInput = document.getElementById('intervalValue');
+        const intervalUnitSelect = document.getElementById('intervalUnit');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const alarmStatus = document.getElementById('alarmStatus');
+        const timeLeftDisplay = document.getElementById('timeLeft');
+        const themeToggleButton = document.getElementById('themeToggleButton');
+
+        let alarmIntervalId;
+        let nextAlarmTime = 0;
+        let currentAlarmIntervalMs = 0;
+        let is24HourFormat = true;
+
+        let audioContext;
+
+        function updateTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            let timeString;
+
+            if (is24HourFormat) {
+                timeString = `${String(hours).padStart(2, '0')}:${minutes}:${seconds}`;
+                toggleTimeFormatButton.querySelector('.tooltip-text').textContent = 'Toggle AM/PM';
+            } else {
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+                timeString = `${String(hours).padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
+                toggleTimeFormatButton.querySelector('.tooltip-text').textContent = 'Toggle 24-Hour';
+            }
+            currentTimeDisplay.textContent = timeString;
+
+            if (startButton.disabled) {
+                const timeLeftMs = nextAlarmTime - now.getTime();
+
+                if (timeLeftMs <= 0) {
+                    triggerAlarm();
+                    nextAlarmTime = now.getTime() + currentAlarmIntervalMs;
+                }
+                updateTimeLeftDisplay(timeLeftMs);
+            } else {
+                timeLeftDisplay.textContent = 'Time left for next alarm: --:--:--';
+            }
+        }
+
+        function updateTimeLeftDisplay(ms) {
+            if (ms < 0) ms = 0;
+
+            const totalSeconds = Math.floor(ms / 1000);
+            const displaySeconds = totalSeconds % 60;
+            const totalMinutes = Math.floor(totalSeconds / 60);
+            const displayMinutes = totalMinutes % 60;
+            const totalHours = Math.floor(totalMinutes / 60);
+            const displayHours = totalHours % 24;
+            const totalDays = Math.floor(totalHours / 24);
+
+            let timeLeftString = '';
+            if (totalDays > 0) {
+                timeLeftString += `${totalDays} day(s), `;
+            }
+            timeLeftString += `${String(displayHours).padStart(2, '0')}:${String(displayMinutes).padStart(2, '0')}:${String(displaySeconds).padStart(2, '0')}`;
+
+            timeLeftDisplay.textContent = `Time left for next alarm: ${timeLeftString}`;
+        }
+
+        function triggerAlarm() {
+            console.log('Alarm triggered!');
+
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const beepDuration = 0.2;
+            const gapBetweenBeeps = 0.1;
+            const setPause = 0.5;
+            const numberOfSets = 3;
+
+            let currentStartTime = audioContext.currentTime;
+
+            const playSingleBeep = (time) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, time);
+                gainNode.gain.setValueAtTime(1, time);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, time + beepDuration);
+                oscillator.start(time);
+                oscillator.stop(time + beepDuration);
+            };
+
+            for (let set = 0; set < numberOfSets; set++) {
+                for (let i = 0; i < 3; i++) {
+                    playSingleBeep(currentStartTime + i * (beepDuration + gapBetweenBeeps));
+                }
+                if (set < numberOfSets - 1) {
+                    currentStartTime += 3 * (beepDuration + gapBetweenBeeps) + setPause;
+                }
+            }
+
+            const flashColor = document.body.classList.contains('dark-mode') ? '#404040' : '#fff3e0';
+            document.body.style.backgroundColor = flashColor;
+            setTimeout(() => {
+                document.body.style.backgroundColor = '';
+            }, 200);
+        }
+
+        function startAlarm() {
+            if (alarmIntervalId) {
+                clearInterval(alarmIntervalId);
+            }
+
+            const intervalValue = parseInt(intervalValueInput.value);
+            const intervalUnit = intervalUnitSelect.value;
+
+            if (isNaN(intervalValue) || intervalValue <= 0) {
+                alert("Please enter a valid positive number for the alarm interval.");
+                return;
+            }
+
+            switch (intervalUnit) {
+                case 'minutes':
+                    currentAlarmIntervalMs = intervalValue * 60 * 1000;
+                    break;
+                case 'hours':
+                    currentAlarmIntervalMs = intervalValue * 60 * 60 * 1000;
+                    break;
+                case 'days':
+                    currentAlarmIntervalMs = intervalValue * 24 * 60 * 60 * 1000;
+                    break;
+                case 'weeks':
+                    currentAlarmIntervalMs = intervalValue * 7 * 24 * 60 * 60 * 1000;
+                    break;
+                case 'months':
+                    currentAlarmIntervalMs = intervalValue * (365.25 / 12) * 24 * 60 * 60 * 1000;
+                    break;
+                case 'years':
+                    currentAlarmIntervalMs = intervalValue * 365.25 * 24 * 60 * 60 * 1000;
+                    break;
+                default:
+                    currentAlarmIntervalMs = 60 * 60 * 1000;
+            }
+
+            nextAlarmTime = new Date().getTime() + currentAlarmIntervalMs;
+
+            alarmIntervalId = setInterval(updateTime, 1000);
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            alarmStatus.textContent = 'Alarm: Active';
+            alarmStatus.classList.remove('inactive');
+            alarmStatus.classList.add('active');
+            updateTime();
+            console.log(`Alarm started: every ${intervalValue} ${intervalUnit}. Next alarm at: ${new Date(nextAlarmTime).toLocaleTimeString()}`);
+        }
+
+        function stopAlarm() {
+            clearInterval(alarmIntervalId);
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            alarmStatus.textContent = 'Alarm: Inactive';
+            alarmStatus.classList.remove('active');
+            alarmStatus.classList.add('inactive');
+            timeLeftDisplay.textContent = 'Time left for next alarm: --:--:--';
+            console.log('Alarm stopped.');
+        }
+
+        function toggleTimeFormat() {
+            is24HourFormat = !is24HourFormat;
+            localStorage.setItem('is24HourFormat', is24HourFormat);
+            updateTime();
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            themeToggleButton.querySelector('i').className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+            themeToggleButton.querySelector('.tooltip-text').textContent = isDarkMode ? 'Toggle Light Mode' : 'Toggle Dark Mode';
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        }
+
+        function applySavedSettings() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || savedTheme === null) {
+                document.body.classList.add('dark-mode');
+                themeToggleButton.querySelector('i').className = 'fas fa-sun';
+                themeToggleButton.querySelector('.tooltip-text').textContent = 'Toggle Light Mode';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggleButton.querySelector('i').className = 'fas fa-moon';
+                themeToggleButton.querySelector('.tooltip-text').textContent = 'Toggle Dark Mode';
+            }
+
+            const savedTimeFormat = localStorage.getItem('is24HourFormat');
+            if (savedTimeFormat !== null) {
+                is24HourFormat = (savedTimeFormat === 'true');
+            }
+            updateTime();
+        }
+
+        startButton.addEventListener('click', startAlarm);
+        stopButton.addEventListener('click', stopAlarm);
+        toggleTimeFormatButton.addEventListener('click', toggleTimeFormat);
+        themeToggleButton.addEventListener('click', toggleDarkMode);
+
+        window.onload = () => {
+            applySavedSettings();
+            updateTime();
+        };
+    </script>
+</body>
+<!-- Bubby Was Here -->
+
+</html>

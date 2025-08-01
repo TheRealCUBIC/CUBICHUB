@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blank Canvas</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <meta name="description" content="Explore creative projects from shows and comics to games and mods BUT in 3D!!!">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
     <style>
         @font-face {
             font-family: 'Minecraft';
@@ -21,11 +21,14 @@
             overflow: hidden;
             font-family: 'Inter', sans-serif;
             background-color: #f0f0f0;
+            touch-action: none;
         }
 
         canvas {
             display: block;
             cursor: grab;
+            width: 100vw;
+            height: 100vh;
         }
 
         #loading-screen {
@@ -43,7 +46,7 @@
             font-size: 2em;
             text-align: center;
             z-index: 1000;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.5s ease, font-size 0.5s ease;
         }
 
         #pause-header {
@@ -106,16 +109,45 @@
             font-size: 1.5em;
         }
 
-        #fps-counter {
+        #fps-container {
             position: absolute;
             top: 10px;
             left: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        #fps-counter {
             color: white;
             font-size: 1.2em;
             background-color: rgba(0, 0, 0, 0.5);
             padding: 5px 10px;
-            border-radius: 5px;
-            z-index: 100;
+            touch-action: manipulation;
+        }
+
+        #fps-graph {
+            width: 100px;
+            height: 40px;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+
+        #dev-overlay {
+            position: absolute;
+            top: 60px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            padding: 10px;
+            z-index: 101;
+            display: none;
+            line-height: 1.5;
+            white-space: pre;
         }
 
         #version-text {
@@ -126,7 +158,6 @@
             font-size: 1em;
             background-color: rgba(0, 0, 0, 0.5);
             padding: 5px 10px;
-            border-radius: 5px;
             z-index: 100;
         }
 
@@ -145,8 +176,8 @@
 
         #warning-text {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50% !important;
+            left: 50% !important;
             transform: translate(-50%, -50%);
             color: white;
             font-size: 2.5em;
@@ -157,11 +188,564 @@
             transition: opacity 0.5s ease-out;
         }
 
-        /* Media queries for responsiveness */
+        #mobile-controls {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            display: none;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        #mobile-controls.active {
+            pointer-events: auto;
+        }
+
+        #joystick-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-left: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            opacity: 0.8;
+        }
+
+        #joystick {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            touch-action: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-right: 20px;
+            pointer-events: auto;
+        }
+
+        .action-button {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.2s, transform 0.1s;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .action-button.sprite-button {
+            color: transparent;
+        }
+
+        .action-button:active {
+            background-color: rgba(0, 0, 0, 0.8);
+            transform: scale(0.95);
+        }
+
+        .action-button.active {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        #orientation-message {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 1);
+            color: white;
+            font-size: 1.5em;
+            text-align: center;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+
+        #orientation-message p {
+            position: relative;
+            padding: 20px 40px;
+            box-sizing: border-box;
+            max-width: 80%;
+        }
+
+        #orientation-message p::before,
+        #orientation-message p::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 1;
+            transition: none;
+            pointer-events: none;
+        }
+
+        #orientation-message p::before {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+            top: -10px;
+            left: -10px;
+            transform: scale(1);
+        }
+
+        #orientation-message p::after {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+            bottom: -10px;
+            right: -10px;
+            transform: scale(1) rotate(180deg);
+        }
+
+        #orientation-message p .top-right-corner::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 1;
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+            top: -10px;
+            right: -10px;
+            transform: scale(1);
+            pointer-events: none;
+        }
+
+        #orientation-message p .bottom-left-corner::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 1;
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+            bottom: -10px;
+            left: -10px;
+            transform: scale(1) rotate(180deg);
+            pointer-events: none;
+        }
+
+        #orientation-message img {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 0px;
+        }
+
+        #sprint-sprite-display,
+        #crouch-sprite-display,
+        #flying-sprite-display {
+            position: absolute;
+            bottom: 30px;
+            width: 80px;
+            height: 80px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 200;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out, right 0.3s ease-out;
+            pointer-events: none;
+        }
+
+        #announcement-container {
+            position: fixed;
+            bottom: 10%;
+            right: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-end;
+            z-index: 2000;
+            pointer-events: none;
+            gap: 15px;
+        }
+
+        .announcement {
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 40px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            overflow: visible;
+            transform: translateX(150%);
+            animation: slideIn 0.5s forwards, slideOut 0.5s 4.5s forwards;
+            max-width: 350px;
+            box-sizing: border-box;
+        }
+
+        .announcement p {
+            margin: 0;
+            font-size: 1em;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .announcement img {
+            width: auto;
+            height: 50px;
+        }
+
+        .announcement .corner {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .announcement .top-left {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+            top: -10px;
+            left: -10px;
+        }
+
+        .announcement .top-right {
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+            top: -10px;
+            right: -10px;
+        }
+
+        .announcement .bottom-left {
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+            bottom: -10px;
+            left: -10px;
+            transform: rotate(180deg);
+        }
+
+        .announcement .bottom-right {
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+            bottom: -10px;
+            right: -10px;
+            transform: rotate(180deg);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(150%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(150%);
+                opacity: 0;
+            }
+        }
+
+        .ui-window {
+            position: fixed;
+            top: 0;
+            height: 100vh;
+            width: 35vw;
+            z-index: 500;
+            transition: transform 0.5s ease-in-out;
+            padding: 20px;
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+
+        .window-content-area {
+            background-color: rgba(220, 220, 220, 0.85);
+            width: 100%;
+            height: 100%;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #minigames-window {
+            right: 0;
+            transform: translateX(100%);
+        }
+
+        #minigames-window.open {
+            transform: translateX(0);
+        }
+
+        #cubic-shop-window {
+            left: 0;
+            transform: translateX(-100%);
+        }
+
+        #cubic-shop-window.open {
+            transform: translateX(0);
+        }
+
+        .window-corner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .window-corner.top-left,
+        .window-corner.top-right,
+        .window-corner.bottom-left,
+        .window-corner.bottom-right {
+            filter: invert(100%);
+        }
+
+        .window-corner.top-left {
+            top: 5px;
+            left: 5px;
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+        }
+
+        .window-corner.top-right {
+            top: 5px;
+            right: 5px;
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+        }
+
+        .window-corner.bottom-left {
+            bottom: 5px;
+            left: 5px;
+            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
+            transform: rotate(180deg);
+        }
+
+        .window-corner.bottom-right {
+            bottom: 5px;
+            right: 5px;
+            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
+            transform: rotate(180deg);
+        }
+
+        .window-title-container {
+            width: calc(100% + 40px);
+            margin-left: -20px;
+            margin-right: -20px;
+            display: flex;
+            align-items: center;
+            color: rgb(0, 140, 255);
+            box-sizing: border-box;
+        }
+
+        .window-title-line {
+            height: 5px;
+            background-color: rgb(0, 140, 255);
+            flex-grow: 1;
+        }
+
+        .window-title-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 0 15px;
+            white-space: nowrap;
+        }
+
+        #minigames-window .window-title-line.left {
+            flex-grow: 4;
+        }
+
+        #minigames-window .window-title-line.right {
+            flex-grow: 1;
+        }
+
+        #cubic-shop-window .window-title-line.left {
+            flex-grow: 1;
+        }
+
+        #cubic-shop-window .window-title-line.right {
+            flex-grow: 4;
+        }
+
+        #mobile-window-toggles {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            gap: 15px;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        #mobile-window-toggles.active {
+            pointer-events: auto;
+            display: flex;
+        }
+
+        .mobile-window-button {
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.2s, transform 0.1s;
+            font-family: 'Minecraft', cursive;
+            letter-spacing: 0.05em;
+        }
+
+        .mobile-window-button:active {
+            background-color: rgba(0, 0, 0, 0.8);
+            transform: scale(0.95);
+        }
+
+        #settings-window {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 450px;
+            /* Increased width for more settings */
+            background-color: rgba(30, 30, 30, 0.9);
+            border: 1px solid #555;
+            border-radius: 0px;
+            z-index: 1500;
+            display: none;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        #settings-window .window-header {
+            padding: 10px;
+            cursor: move;
+            background-color: rgba(50, 50, 50, 1);
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            font-weight: bold;
+            text-align: center;
+            user-select: none;
+        }
+
+        #settings-window .window-content {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        .setting-item label {
+            flex-basis: 45%;
+            white-space: nowrap;
+        }
+
+        .setting-item input[type="range"],
+        .setting-item select {
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+
+        .setting-item span {
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .setting-item input[type="number"] {
+            flex-grow: 1;
+            margin: 0 10px;
+            background-color: #444;
+            color: white;
+            border: 1px solid #666;
+            padding: 3px 5px;
+            text-align: right;
+        }
+
+        .setting-item input[type="number"]::-webkit-outer-spin-button,
+        .setting-item input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .settings-divider {
+            border-bottom: 1px solid #555;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.1em;
+            color: #ccc;
+        }
+
+        #movement-settings-container,
+        #grid-settings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
         @media (max-width: 768px) {
+            #settings-window {
+                width: 90vw;
+                height: 90vh;
+                max-width: 450px;
+                max-height: 800px;
+                font-size: 0.9em;
+            }
+
+            #settings-window .window-content {
+                padding: 10px;
+                gap: 8px;
+            }
+
+            .setting-item label {
+                flex-basis: 40%;
+            }
+        }
+
+
+        @media (max-height: 600px) and (orientation: landscape) {
+            #loading-screen {
+                font-size: 1.5em;
+            }
+
             #pause-header {
-                flex-direction: column;
-                align-items: flex-start;
                 top: 10px;
                 left: 10px;
             }
@@ -170,18 +754,9 @@
                 width: 40px;
             }
 
-            #pause-header .logo-text-pause {
-                font-size: 1.5em;
-            }
-
             #instructions {
-                font-size: 0.6em;
-                bottom: 10px;
+                bottom: 50px;
                 left: 10px;
-            }
-
-            #loading-text {
-                font-size: 1.2em;
             }
 
             #fps-counter,
@@ -193,9 +768,14 @@
             #warning-text {
                 font-size: 1.8em;
             }
+
         }
 
-        @media (max-width: 480px) {
+        @media (max-height: 450px) and (orientation: landscape) {
+            #loading-screen {
+                font-size: 1em;
+            }
+
             #pause-header {
                 top: 5px;
                 left: 5px;
@@ -206,102 +786,354 @@
                 width: 30px;
             }
 
-            #pause-header .logo-text-pause {
-                font-size: 1.2em;
-            }
-
             #instructions {
-                font-size: 0.5em;
-                bottom: 5px;
+                bottom: 50px;
                 left: 5px;
-            }
-
-            #loading-text {
-                font-size: 1em;
             }
 
             #fps-counter,
             #version-text {
-                font-size: 0.8em;
+                font-size: 0.6em;
             }
 
             #warning-text {
                 font-size: 1.5em;
             }
+
+        }
+
+        @media (max-height: 768px) {
+
+            #dev-overlay {
+                font-size: 12px;
+                padding: 8px;
+            }
+
+            #announcement-container {
+                bottom: auto;
+                top: 20px;
+                right: 20px;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 10px;
+            }
+
+            .announcement {
+                padding: 10px 20px;
+                margin-bottom: 5px;
+                max-width: 250px;
+            }
+
+            .announcement p {
+                font-size: 0.8em;
+            }
+
+            .announcement img {
+                height: 30px;
+            }
+
+            .announcement .corner {
+                width: 20px;
+                height: 20px;
+            }
+
+            .announcement .top-left {
+                top: -5px;
+                left: -5px;
+            }
+
+            .announcement .top-right {
+                top: -5px;
+                right: -5px;
+            }
+
+            .announcement .bottom-left {
+                bottom: -5px;
+                left: -5px;
+            }
+
+            .announcement .bottom-right {
+                bottom: -5px;
+                right: -5px;
+            }
+
+            @keyframes slideIn {
+                from {
+                    transform: translateX(150%);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+
+                to {
+                    transform: translateX(150%);
+                    opacity: 0;
+                }
+            }
+        }
+
+        #game-elements-wrapper {
+            display: contents;
         }
     </style>
 </head>
 
 <body>
-    <div id="loading-screen">
-        <div id="pause-header">
-            <div class="logo-pause">
+    <div id="game-elements-wrapper">
+        <div id="loading-screen">
+            <div id="pause-header">
+                <div class="logo-pause">
+                    <a href="index.html">
+                        <img src="assests/images/favicon.webp" alt="(error) CUBIC Logo image not found">
+                    </a>
+                </div>
                 <a href="index.html">
-                    <img src="assests/images/header/logo_image.webp" alt="CUBIC Logo">
+                    <span class="logo-text-pause">CUBIC Games</span>
                 </a>
             </div>
-            <a href="index.html"> <!-- Removed inline style to use CSS rule -->
-                <span class="logo-text-pause">CUBIC Games</span>
-            </a>
+            <span id="loading-text">Welcome to Blank Canvas :)</span>
+            <div id="instructions">
+            </div>
         </div>
-        <span id="loading-text">Welcome to Blank Canvas :)</span>
-        <div id="instructions">
-            Click to enter!
-            <br>
-            Use Arrow Keys or WASD to move
-            <br>
-            Press ESC to release mouse
-            <br>
-            Hold SHIFT for Sprint
-            <br>
-            Hold CTRL for Crouch
-            <br>
-            Press SPACE to Jump
-            <br>
+        <div id="fps-container">
+            <div id="fps-counter">FPS: 0</div>
+            <canvas id="fps-graph"></canvas>
+        </div>
+        <div id="version-text">Alpha B010825</div>
+        <div id="darkness-overlay"></div>
+        <div id="warning-text"></div>
+
+        <div id="dev-overlay"></div>
+
+        <div id="mobile-controls">
+            <div id="joystick-container">
+                <div id="joystick"></div>
+            </div>
+            <div class="action-buttons">
+                <button id="jump-button" class="action-button">Jump</button>
+                <button id="sprint-button" class="action-button">Sprint</button>
+                <button id="crouch-button" class="action-button">Crouch</button>
+            </div>
+        </div>
+
+        <div id="sprint-sprite-display"></div>
+        <div id="crouch-sprite-display"></div>
+        <div id="flying-sprite-display"></div>
+    </div>
+
+    <div id="cubic-shop-window" class="ui-window">
+        <div class="window-corner top-left"></div>
+        <div class="window-corner top-right"></div>
+        <div class="window-corner bottom-left"></div>
+        <div class="window-corner bottom-right"></div>
+        <div class="window-content-area">
+            <div class="window-title-container">
+                <div class="window-title-line left"></div>
+                <span class="window-title-text">CUBIC Shop</span>
+                <div class="window-title-line right"></div>
+            </div>
+            <!-- Content for CUBIC Shop will go here -->
         </div>
     </div>
-    <div id="fps-counter">FPS: 0</div>
-    <div id="version-text">Alpha A080625</div>
-    <div id="darkness-overlay"></div>
-    <div id="warning-text"></div>
+
+    <div id="minigames-window" class="ui-window">
+        <div class="window-corner top-left"></div>
+        <div class="window-corner top-right"></div>
+        <div class="window-corner bottom-left"></div>
+        <div class="window-corner bottom-right"></div>
+        <div class="window-content-area">
+            <div class="window-title-container">
+                <div class="window-title-line left"></div>
+                <span class="window-title-text">Minigames</span>
+                <div class="window-title-line right"></div>
+            </div>
+            <!-- Content for Minigames will go here -->
+        </div>
+    </div>
+
+    <div id="orientation-message">
+        <img src="assests/images/Blanck_Canvas/Global_Sprites/rotate_device.webp"
+            alt="(error) Rotate Device image not found">
+        <p>
+            For the best experience Please rotate your device to landscape mode :)
+            <span class="top-right-corner"></span>
+            <span class="bottom-left-corner"></span>
+        </p>
+    </div>
+
+    <div id="announcement-container"></div>
+
+    <div id="mobile-window-toggles">
+        <button id="minigames-toggle-button" class="mobile-window-button">Minigames</button>
+        <button id="shop-toggle-button" class="mobile-window-button">Shop</button>
+    </div>
+
+    <div id="settings-window">
+        <div class="window-header">Settings</div>
+        <div class="window-content">
+            <div class="settings-divider">Graphics</div>
+            <div class="setting-item">
+                <label for="antialiasing-toggle">Antialiasing (Reload)</label>
+                <input type="checkbox" id="antialiasing-toggle">
+            </div>
+            <div class="setting-item">
+                <label for="pixel-ratio-slider">Pixel Ratio</label>
+                <input type="range" id="pixel-ratio-slider" min="0.5" max="2" step="0.1">
+                <span id="pixel-ratio-value">1.5</span>
+            </div>
+            <div class="setting-item">
+                <label for="shadow-map-slider">Shadow Quality</label>
+                <input type="range" id="shadow-map-slider" min="512" max="4096" step="512">
+                <span id="shadow-map-value">1024</span>
+            </div>
+            <div class="setting-item">
+                <label for="tone-mapping-select">Tone Mapping</label>
+                <select id="tone-mapping-select">
+                    <option value="0">None</option>
+                    <option value="1">Linear</option>
+                    <option value="2">Reinhard</option>
+                    <option value="3">Cineon</option>
+                    <option value="4">ACES Filmic</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="exposure-slider">Exposure</label>
+                <input type="range" id="exposure-slider" min="0" max="2" step="0.1">
+                <span id="exposure-value">1.0</span>
+            </div>
+            <div class="setting-item">
+                <label for="fog-toggle">Enable Fog</label>
+                <input type="checkbox" id="fog-toggle">
+            </div>
+            <div class="setting-item">
+                <label for="fog-density-slider">Fog Density</label>
+                <input type="range" id="fog-density-slider" min="0" max="0.001" step="0.00005">
+                <span id="fog-density-value">0.0</span>
+            </div>
+
+            <div id="grid-settings-container">
+                <div class="settings-divider">Ground & Grid</div>
+                <div class="setting-item">
+                    <label for="grid-style-slider">Grid Style</label>
+                    <input type="range" id="grid-style-slider" min="0" max="1" step="0.01">
+                    <span id="grid-style-value">3D</span>
+                </div>
+                <div class="setting-item">
+                    <label for="texture-size-slider">Grid Cell Size</label>
+                    <input type="range" id="texture-size-slider" min="10" max="200" step="5">
+                    <span id="texture-size-value">20</span>
+                </div>
+                <div class="setting-item">
+                    <label for="grid-cross-length-slider">3D Cross Length</label>
+                    <input type="range" id="grid-cross-length-slider" min="1" max="20" step="0.5">
+                    <span id="grid-cross-length-value">8.0</span>
+                </div>
+                <div class="setting-item">
+                    <label for="grid-cross-width-slider">3D Cross Width</label>
+                    <input type="range" id="grid-cross-width-slider" min="0.1" max="5" step="0.1">
+                    <span id="grid-cross-width-value">1.0</span>
+                </div>
+                <div class="setting-item">
+                    <label for="grid-bar-width-slider">3D Bar Width</label>
+                    <input type="range" id="grid-bar-width-slider" min="0.1" max="2" step="0.1">
+                    <span id="grid-bar-width-value">0.5</span>
+                </div>
+            </div>
+
+            <div class="settings-divider">Controls</div>
+            <div class="setting-item">
+                <label for="mouse-sensitivity-slider">Mouse Sensitivity</label>
+                <input type="range" id="mouse-sensitivity-slider" min="0.001" max="0.01" step="0.0005">
+                <span id="mouse-sensitivity-value">0.002</span>
+            </div>
+            <div id="movement-settings-container">
+                <div class="settings-divider">Movement Physics</div>
+                <div class="setting-item">
+                    <label for="pm-accel-slider">Ground Accel</label>
+                    <input type="range" id="pm-accel-slider" min="1" max="50" step="0.5">
+                    <span id="pm-accel-value">30.0</span>
+                </div>
+                <div class="setting-item">
+                    <label for="pm-air-accel-slider">Air Accel</label>
+                    <input type="range" id="pm-air-accel-slider" min="0.1" max="20" step="0.1">
+                    <span id="pm-air-accel-value">10.0</span>
+                </div>
+                <div class="setting-item">
+                    <label for="pm-friction-slider">Friction</label>
+                    <input type="range" id="pm-friction-slider" min="1" max="20" step="0.5">
+                    <span id="pm-friction-value">7.0</span>
+                </div>
+                <div class="setting-item">
+                    <label for="pm-gravity-slider">Gravity</label>
+                    <input type="range" id="pm-gravity-slider" min="5" max="80" step="1">
+                    <span id="pm-gravity-value">40</span>
+                </div>
+                <div class="setting-item">
+                    <label for="pm-jump-strength-slider">Jump Strength</label>
+                    <input type="range" id="pm-jump-strength-slider" min="1" max="40" step="0.5">
+                    <span id="pm-jump-strength-value">20.0</span>
+                </div>
+                <div class="setting-item">
+                    <label for="max-speed-slider">Max Speed</label>
+                    <input type="range" id="max-speed-slider" min="10" max="200" step="1">
+                    <span id="max-speed-value">100</span>
+                </div>
+                <div class="setting-item">
+                    <label for="noclip-speed-slider">NoClip Speed</label>
+                    <input type="range" id="noclip-speed-slider" min="10" max="500" step="10">
+                    <span id="noclip-speed-value">100</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script type="module">
-        // Core Scene Components
-        let scene, camera, renderer;
+        let scene, camera, renderer, directionalLight;
         const clock = new THREE.Clock();
 
-        // Player & Camera Control
         let cameraYaw = 0;
         let cameraPitch = 0;
-        let verticalVelocity = 0;
-        let isJumping = false;
-        let isFlying = false;
         let currentBaseCameraHeight = 5.0;
+
         const keysPressed = {};
         let isPointerLocked = false;
+        let gamepadIndex = -1;
 
-        // Movement & Physics Constants
-        const mouseSensitivity = 0.002;
-        const baseMoveSpeed = 50.0;
-        const sprintMultiplier = 1.5;
-        const crouchMultiplier = 0.5;
-        const flySpeedMultiplier = 2.0;
+        let PM_ACCEL = 30.0;
+        let PM_AIR_ACCEL = 10.0;
+        let PM_FRICTION = 7.0;
+        let PM_GRAVITY = 50.0;
+        let PM_JUMP_STRENGTH = 20.0;
+        let MAX_SPEED = 100;
+        let NOCLIP_SPEED = 200;
+
+        const player = {
+            velocity: new THREE.Vector3(),
+            onGround: false
+        };
+
         const normalCameraHeight = 5.0;
         const crouchCameraHeight = 2.0;
-        const jumpStrength = 25;
-        const gravity = -9.8 * 5;
 
-        // Flight Control
         let lastSpacePressTime = 0;
-        let spacebarHeld = false;
         const doubleTapThreshold = 300;
+        let lastFrameTime = performance.now();
+        let lastFpsUpdateTime = 0;
+        const fpsUpdateInterval = 100;
+        let isLoadingScreenVisible = true;
 
-        // World & Environment
-        let stars;
-        let moon;
         const groundSize = 2500;
-
-        // Boundary Effects
         const boundaryRadius = 1500;
         const slowdownStartDistance = 50;
         const maxSlowdownDistance = 100;
@@ -318,54 +1150,217 @@
         let lastSentenceChangeTime = 0;
         const sentenceChangeInterval = 4000;
 
-        // UI & Performance
-        let fpsCounterElement;
-        let loadingScreen;
-        let darknessOverlayElement;
-        let warningTextElement;
-        let lastFrameTime = performance.now();
-        let lastFpsUpdateTime = 0;
-        const fpsUpdateInterval = 1000;
+        let fpsCounterElement, loadingScreen, darknessOverlayElement, warningTextElement, instructionsElement;
+        let joystickContainer, joystick, mobileControlsElement, orientationMessage, gameElementsWrapper;
+        let sprintSpriteDisplayElement, crouchSpriteDisplayElement, flyingSpriteDisplayElement;
+        let announcementContainer, devOverlayElement;
+        let minigamesWindow, cubicShopWindow, mobileWindowToggles, settingsWindow, movementSettingsContainer, gridSettingsContainer;
+        let fpsGraphCanvas, fpsGraphCtx;
 
-        // Main Execution
+        let joystickActive = false;
+        let joystickStartX, joystickStartY, joystickCurrentX, joystickCurrentY;
+        let touchCameraActive = false;
+        let lastTouchX, lastTouchY;
+        let touchIdentifierForCamera = null;
+        let touchIdentifierForJoystick = null;
+        let hasMobileInteractionStarted = false;
+        let isLandscape = false;
+
+        const gamepadDeadzone = 0.1;
+        let gamepadButton0PreviouslyPressed = false;
+        let gamepadStartButtonPreviouslyPressed = false;
+        let gamepadButton1PreviouslyPressed = false;
+        let gamepadButton2PreviouslyPressed = false;
+        let gamepadL1R1PreviouslyPressed = false;
+        let gamepadMinigamesButtonPreviouslyPressed = false;
+        let gamepadShopButtonPreviouslyPressed = false;
+        let gamepadButton3PreviouslyPressed = false;
+
+        let lastInputTypeChangeTime = 0;
+        const inputSwitchCooldown = 1000;
+        let currentInputType = 'keyboard';
+        let isSprintingToggled = false;
+        let isCrouchingToggled = false;
+        let isNoClipActive = false;
+        let isMouseActive = true;
+        let mouseActivityTimeout;
+
+        let isDevMode = false;
+        let lastFPSTouchTime = 0;
+        let fpsTouchCount = 0;
+        let isDraggingSettings = false;
+        let dragOffsetX, dragOffsetY;
+        const fpsHistory = [];
+        const maxFpsHistory = 50;
+        const gameSettings = {
+            antialias: true,
+            pixelRatio: 1.5,
+            shadowMapSize: 1024,
+            mouseSensitivity: 0.00025,
+            toneMapping: THREE.LinearToneMapping,
+            toneMappingExposure: 1.0,
+            fogEnabled: false,
+            fogDensity: 0.00025,
+            gridTransition: 0.0,
+            textureSize: 20,
+            gridSpacing: 20,
+            gridCrossLength: 8,
+            gridCrossWidth: 1,
+            gridBarWidth: 0.5,
+
+            pm_accel: PM_ACCEL,
+            pm_air_accel: PM_AIR_ACCEL,
+            pm_friction: PM_FRICTION,
+            pm_gravity: PM_GRAVITY,
+            pm_jump_strength: PM_JUMP_STRENGTH,
+            max_speed: MAX_SPEED,
+            noclip_speed: NOCLIP_SPEED
+        };
+
+        const SPRITE_JUMP = 'assests/images/Blanck_Canvas/Mobile_Sprites/Jump_button_Sprite.webp';
+        const SPRITE_DOWN = 'assests/images/Blanck_Canvas/Mobile_Sprites/DOWN_button_Sprite.webp';
+        const SPRITE_UP = 'assests/images/Blanck_Canvas/Mobile_Sprites/UP_button_Sprite.webp';
+        const SPRITE_SPRINT = 'assests/images/Blanck_Canvas/Mobile_Sprites/Sprint_button_Sprite.webp';
+        const SPRITE_CROUCH = 'assests/images/Blanck_Canvas/Mobile_Sprites/Crouch_button_Sprite.webp';
+        const SPRITE_STANDING = 'assests/images/Blanck_Canvas/Mobile_Sprites/Standing_Button_Sprite.webp';
+
+        let isMinigamesOpen = false;
+        let isCubicShopOpen = false;
+
+        let ground;
+        let groundTextureMesh;
+        let instancedGridGroup;
+
+
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('blankCanvasSettings');
+            if (savedSettings) {
+                const parsed = JSON.parse(savedSettings);
+                Object.assign(gameSettings, parsed);
+
+                gameSettings.gridSpacing = gameSettings.textureSize;
+
+                PM_ACCEL = gameSettings.pm_accel;
+                PM_AIR_ACCEL = gameSettings.pm_air_accel;
+                PM_FRICTION = gameSettings.pm_friction;
+                PM_GRAVITY = gameSettings.pm_gravity;
+                PM_JUMP_STRENGTH = gameSettings.pm_jump_strength;
+                MAX_SPEED = gameSettings.max_speed;
+                NOCLIP_SPEED = gameSettings.noclip_speed;
+            }
+        }
+
+        function saveSettings() {
+            gameSettings.pm_accel = PM_ACCEL;
+            gameSettings.pm_air_accel = PM_AIR_ACCEL;
+            gameSettings.pm_friction = PM_FRICTION;
+            gameSettings.pm_gravity = PM_GRAVITY;
+            gameSettings.pm_jump_strength = PM_JUMP_STRENGTH;
+            gameSettings.max_speed = MAX_SPEED;
+            gameSettings.noclip_speed = NOCLIP_SPEED;
+            localStorage.setItem('blankCanvasSettings', JSON.stringify(gameSettings));
+        }
+
         window.onload = function () {
+            loadSettings();
             init();
+            checkOrientation();
             animate();
             loadingScreen.style.display = 'flex';
+            updateInstructions();
         };
 
         function init() {
-            // UI Elements
             loadingScreen = document.getElementById('loading-screen');
             fpsCounterElement = document.getElementById('fps-counter');
             darknessOverlayElement = document.getElementById('darkness-overlay');
             warningTextElement = document.getElementById('warning-text');
+            instructionsElement = document.getElementById('instructions');
+            orientationMessage = document.getElementById('orientation-message');
+            announcementContainer = document.getElementById('announcement-container');
+            devOverlayElement = document.getElementById('dev-overlay');
+            gameElementsWrapper = document.getElementById('game-elements-wrapper');
+            minigamesWindow = document.getElementById('minigames-window');
+            cubicShopWindow = document.getElementById('cubic-shop-window');
+            mobileWindowToggles = document.getElementById('mobile-window-toggles');
+            mobileControlsElement = document.getElementById('mobile-controls');
+            joystickContainer = document.getElementById('joystick-container');
+            joystick = document.getElementById('joystick');
+            sprintSpriteDisplayElement = document.getElementById('sprint-sprite-display');
+            crouchSpriteDisplayElement = document.getElementById('crouch-sprite-display');
+            flyingSpriteDisplayElement = document.getElementById('flying-sprite-display');
 
-            // Scene Setup
+            movementSettingsContainer = document.getElementById('movement-settings-container');
+            gridSettingsContainer = document.getElementById('grid-settings-container');
+
+            fpsGraphCanvas = document.getElementById('fps-graph');
+            fpsGraphCtx = fpsGraphCanvas.getContext('2d');
+
+            window.onerror = function (message, source, lineno, colno, error) {
+                if (isDevMode) {
+                    const errorMsg = `Error: ${message} at ${source.split('/').pop()}:${lineno}`;
+                    createAnnouncement(errorMsg, "assests/images/Blanck_Canvas/Global_Sprites/Error.webp");
+                }
+                return false;
+            };
+
+            if (sprintSpriteDisplayElement) sprintSpriteDisplayElement.style.backgroundImage = `url(${SPRITE_SPRINT})`;
+            if (crouchSpriteDisplayElement) crouchSpriteDisplayElement.style.backgroundImage = `url(${SPRITE_CROUCH})`;
+            if (flyingSpriteDisplayElement) flyingSpriteDisplayElement.style.backgroundImage = `url(${SPRITE_STANDING})`;
+
+            const jumpButton = document.getElementById('jump-button');
+            if (jumpButton) {
+                jumpButton.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    keysPressed['Space'] = true;
+                    updateButtonActiveState('jump-button', true);
+                });
+                jumpButton.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    keysPressed['Space'] = false;
+                    updateButtonActiveState('jump-button', false);
+                });
+            }
+            const crouchButton = document.getElementById('crouch-button');
+            if (crouchButton) {
+                crouchButton.addEventListener('touchstart', (e) => { e.preventDefault(); toggleCrouch(); }, { passive: false });
+            }
+            document.getElementById('sprint-button').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                toggleSprint();
+            }, { passive: false });
+
+            const minigamesToggleButton = document.getElementById('minigames-toggle-button');
+            if (minigamesToggleButton) minigamesToggleButton.addEventListener('click', toggleMinigamesWindow);
+            const shopToggleButton = document.getElementById('shop-toggle-button');
+            if (shopToggleButton) shopToggleButton.addEventListener('click', toggleCubicShopWindow);
+
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0A0A2A); // Dark navy blue
+            if (gameSettings.fogEnabled) {
+                scene.fog = new THREE.FogExp2(0x0A0A2A, gameSettings.fogDensity);
+            }
 
-            // Camera Setup - Far clipping plane adjusted to 2500
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2500);
-            camera.position.set(0, normalCameraHeight, 0);
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, currentBaseCameraHeight, 0);
 
-            // Renderer Setup
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer = new THREE.WebGLRenderer({ antialias: gameSettings.antialias });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, gameSettings.pixelRatio));
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = gameSettings.toneMapping;
+            renderer.toneMappingExposure = gameSettings.toneMappingExposure;
+            renderer.outputEncoding = THREE.sRGBEncoding;
             document.body.appendChild(renderer.domElement);
 
-            // Lighting
             const hemiLight = new THREE.HemisphereLight(0xADD8E6, 0x1A1A3A, 0.5);
             scene.add(hemiLight);
 
-            const directionalLight = new THREE.DirectionalLight(0xC0C0C0, 0.3);
+            directionalLight = new THREE.DirectionalLight(0xC0C0C0, 0.3);
             directionalLight.position.set(100, 200, 100);
             directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.mapSize.width = gameSettings.shadowMapSize;
+            directionalLight.shadow.mapSize.height = gameSettings.shadowMapSize;
             directionalLight.shadow.camera.near = 0.5;
             directionalLight.shadow.camera.far = 500;
             directionalLight.shadow.camera.left = -200;
@@ -374,219 +1369,1170 @@
             directionalLight.shadow.camera.bottom = -200;
             scene.add(directionalLight);
 
-            // Ground
             const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
             groundGeometry.rotateX(-Math.PI / 2);
-            const groundMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
-            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            const groundMaterial = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                metalness: 0.2,
+                roughness: 0.6,
+                transparent: true
+            });
+            ground = new THREE.Mesh(groundGeometry, groundMaterial);
             ground.receiveShadow = true;
             scene.add(ground);
 
-            // Grid Pattern (Optimized with InstancedMesh)
+            instancedGridGroup = new THREE.Group();
+            scene.add(instancedGridGroup);
             createInstancedGrid();
 
-            // Starfield
-            createStarfield();
+            const textureLoader = new THREE.TextureLoader();
+            const groundTexture = textureLoader.load('assests/images/Blanck_Canvas/textures/Ground/Blank_Plane.png', (texture) => {
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.offset.set(0.5, 0.5);
+                updateTextureSize();
+            }, undefined, (error) => {
+                console.error('An error occurred while loading the ground texture.', error);
+                createAnnouncement("Error loading ground texture.", "assests/images/Blanck_Canvas/Global_Sprites/Error.webp");
+            });
+            const texturedGroundMaterial = new THREE.MeshStandardMaterial({
+                map: groundTexture,
+                metalness: 0.2,
+                roughness: 0.6,
+                transparent: true
+            });
+            const texturedGroundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
+            texturedGroundGeometry.rotateX(-Math.PI / 2);
+            groundTextureMesh = new THREE.Mesh(texturedGroundGeometry, texturedGroundMaterial);
+            groundTextureMesh.receiveShadow = true;
+            groundTextureMesh.position.y = -0.01;
+            scene.add(groundTextureMesh);
 
-            // Moon
-            createMoon(directionalLight.position);
+            updateGridTransition();
 
-            // Event Listeners
+
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            pmremGenerator.compileEquirectangularShader();
+            new THREE.RGBELoader()
+                .load('assests/images/Blanck_Canvas/textures/Sky/Cloudy_Sky.hdr', function (texture) {
+                    const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+                    scene.background = envMap;
+                    scene.environment = envMap;
+                    texture.dispose();
+                    pmremGenerator.dispose();
+                }, undefined, (error) => {
+                    console.error('An error occurred while loading the HDR file.', error);
+                    createAnnouncement("Error loading sky texture.", "assests/images/Blanck_Canvas/Global_Sprites/Error.webp");
+                    scene.background = new THREE.Color(0x87CEEB);
+                });
+
             setupEventListeners();
+            updateMobileControlsVisibility();
+            updateButtonSprites();
+            updateCursorVisibility();
+            setupSettingsWindow();
+
+            movementSettingsContainer.style.display = isDevMode ? 'block' : 'none';
         }
 
+        function accelerate(wishDir, wishSpeed, accel, dt) {
+            const currentSpeed = player.velocity.dot(wishDir);
+            const addSpeed = wishSpeed - currentSpeed;
+
+            if (addSpeed <= 0) {
+                return;
+            }
+
+            let accelSpeed = accel * wishSpeed * dt;
+            if (accelSpeed > addSpeed) {
+                accelSpeed = addSpeed;
+            }
+
+            player.velocity.add(wishDir.clone().multiplyScalar(accelSpeed));
+        }
+
+        function applyFriction(dt) {
+            const speed = player.velocity.length();
+            if (speed < 0.1) {
+                player.velocity.x = 0;
+                player.velocity.z = 0;
+                return;
+            }
+
+            let control = speed < PM_FRICTION ? PM_FRICTION : speed;
+            let drop = control * PM_FRICTION * dt;
+
+            let newSpeed = speed - drop;
+            if (newSpeed < 0) newSpeed = 0;
+
+            newSpeed /= speed;
+            player.velocity.x *= newSpeed;
+            player.velocity.z *= newSpeed;
+        }
+
+
         function createInstancedGrid() {
-            const plusSignSpacing = 20;
-            const crossLength = 8;
-            const crossWidth = 1;
+            while (instancedGridGroup.children.length > 0) {
+                const child = instancedGridGroup.children[0];
+                instancedGridGroup.remove(child);
+                if (child.geometry) child.geometry.dispose();
+                if (child.material) child.material.dispose();
+            }
+
+            const plusSignSpacing = gameSettings.gridSpacing;
+            const crossLength = gameSettings.gridCrossLength;
+            const crossWidth = gameSettings.gridCrossWidth;
             const crossHeight = 0.1;
-            const connectingBarWidth = 0.5;
+            const connectingBarWidth = gameSettings.gridBarWidth;
             const connectingBarHeight = 0.1;
             const connectingBarLength = plusSignSpacing - crossLength;
 
-            const numInstancesX = Math.floor(groundSize / plusSignSpacing) + 1;
-            const numInstancesZ = Math.floor(groundSize / plusSignSpacing) + 1;
-            const totalInstances = numInstancesX * numInstancesZ;
+            if (connectingBarLength < 0) {
+                console.warn("Connecting bar length is negative, grid will not be created.");
+                return;
+            }
 
-            const startX = -groundSize / 2 + plusSignSpacing / 2;
-            const startZ = -groundSize / 2 + plusSignSpacing / 2;
-
-            const patternMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+            const patternMaterial = new THREE.MeshLambertMaterial({ color: 0x000000, transparent: true });
 
             const horizontalCrossGeometry = new THREE.BoxGeometry(crossLength, crossHeight, crossWidth);
             const verticalCrossGeometry = new THREE.BoxGeometry(crossWidth, crossHeight, crossLength);
-
             const horizontalBarGeometry = new THREE.BoxGeometry(connectingBarLength, connectingBarHeight, connectingBarWidth);
             const verticalBarGeometry = new THREE.BoxGeometry(connectingBarWidth, connectingBarHeight, connectingBarLength);
 
-            const hCrossInstancedMesh = new THREE.InstancedMesh(horizontalCrossGeometry, patternMaterial, totalInstances);
-            const vCrossInstancedMesh = new THREE.InstancedMesh(verticalCrossGeometry, patternMaterial, totalInstances);
-            const horizontalBarInstancedMesh = new THREE.InstancedMesh(horizontalBarGeometry, patternMaterial, totalInstances);
-            const verticalBarInstancedMesh = new THREE.InstancedMesh(verticalBarGeometry, patternMaterial, totalInstances);
+            const halfGround = groundSize / 2;
+            const startCoord = -Math.floor(halfGround / plusSignSpacing) * plusSignSpacing;
+            const endCoord = Math.ceil(halfGround / plusSignSpacing) * plusSignSpacing;
+
+            let numCrosses = 0;
+            let numHBars = 0;
+            let numVBars = 0;
+
+            for (let x = startCoord; x <= endCoord; x += plusSignSpacing) {
+                for (let z = startCoord; z <= endCoord; z += plusSignSpacing) {
+                    numCrosses++;
+                    if (x + plusSignSpacing <= endCoord && x !== endCoord) {
+                        numHBars++;
+                    }
+                    if (z + plusSignSpacing <= endCoord && z !== endCoord) {
+                        numVBars++;
+                    }
+                }
+            }
+
+            const hCrossInstancedMesh = new THREE.InstancedMesh(horizontalCrossGeometry, patternMaterial, numCrosses);
+            const vCrossInstancedMesh = new THREE.InstancedMesh(verticalCrossGeometry, patternMaterial, numCrosses);
+            const horizontalBarInstancedMesh = new THREE.InstancedMesh(horizontalBarGeometry, patternMaterial, numHBars);
+            const verticalBarInstancedMesh = new THREE.InstancedMesh(verticalBarGeometry, patternMaterial, numVBars);
 
             hCrossInstancedMesh.castShadow = false;
             vCrossInstancedMesh.castShadow = false;
             horizontalBarInstancedMesh.castShadow = false;
             verticalBarInstancedMesh.castShadow = false;
-
             hCrossInstancedMesh.receiveShadow = true;
             vCrossInstancedMesh.receiveShadow = true;
             horizontalBarInstancedMesh.receiveShadow = true;
             verticalBarInstancedMesh.receiveShadow = true;
 
             const dummy = new THREE.Object3D();
-            let instanceIndex = 0;
+            let hCrossIndex = 0;
+            let vCrossIndex = 0;
+            let hBarIndex = 0;
+            let vBarIndex = 0;
 
-            for (let i = 0; i < numInstancesX; i++) {
-                for (let j = 0; j < numInstancesZ; j++) {
-                    const currentX = startX + i * plusSignSpacing;
-                    const currentZ = startZ + j * plusSignSpacing;
-
-                    dummy.position.set(currentX, 0, currentZ);
+            for (let x = startCoord; x <= endCoord; x += plusSignSpacing) {
+                for (let z = startCoord; z <= endCoord; z += plusSignSpacing) {
+                    dummy.position.set(x, 0.01, z);
                     dummy.updateMatrix();
-                    hCrossInstancedMesh.setMatrixAt(instanceIndex, dummy.matrix);
-                    vCrossInstancedMesh.setMatrixAt(instanceIndex, dummy.matrix);
+                    hCrossInstancedMesh.setMatrixAt(hCrossIndex++, dummy.matrix);
+                    vCrossInstancedMesh.setMatrixAt(vCrossIndex++, dummy.matrix);
 
-                    if (i < numInstancesX - 1) {
-                        dummy.position.set(currentX + crossLength / 2 + connectingBarLength / 2, 0, currentZ);
+                    if (x + plusSignSpacing <= endCoord && x !== endCoord) {
+                        dummy.position.set(x + plusSignSpacing / 2, 0.01, z);
                         dummy.updateMatrix();
-                        horizontalBarInstancedMesh.setMatrixAt(instanceIndex, dummy.matrix);
+                        horizontalBarInstancedMesh.setMatrixAt(hBarIndex++, dummy.matrix);
                     }
 
-                    if (j < numInstancesZ - 1) {
-                        dummy.position.set(currentX, 0, currentZ + crossLength / 2 + connectingBarLength / 2);
+                    if (z + plusSignSpacing <= endCoord && z !== endCoord) {
+                        dummy.position.set(x, 0.01, z + plusSignSpacing / 2);
                         dummy.updateMatrix();
-                        verticalBarInstancedMesh.setMatrixAt(instanceIndex, dummy.matrix);
+                        verticalBarInstancedMesh.setMatrixAt(vBarIndex++, dummy.matrix);
                     }
-                    instanceIndex++;
                 }
             }
-            scene.add(hCrossInstancedMesh, vCrossInstancedMesh, horizontalBarInstancedMesh, verticalBarInstancedMesh);
-        }
 
-        function createStarfield() {
-            const starGeometry = new THREE.BufferGeometry();
-            const numberOfStars = 5000;
-            const starfieldRadius = 2000;
-            const starVertices = new Float32Array(numberOfStars * 3);
-            const starOpacities = new Float32Array(numberOfStars);
-            const starSizes = new Float32Array(numberOfStars);
-            const starTwinkleOffsets = new Float32Array(numberOfStars);
+            instancedGridGroup.add(hCrossInstancedMesh);
+            instancedGridGroup.add(vCrossInstancedMesh);
+            instancedGridGroup.add(horizontalBarInstancedMesh);
+            instancedGridGroup.add(verticalBarInstancedMesh);
 
-            for (let i = 0; i < numberOfStars; i++) {
-                const i3 = i * 3;
-                const u = Math.random();
-                const v = Math.random();
-                const theta = 2 * Math.PI * u;
-                const phi = Math.acos(2 * v - 1);
-                starVertices[i3] = starfieldRadius * Math.sin(phi) * Math.cos(theta);
-                starVertices[i3 + 1] = starfieldRadius * Math.cos(phi);
-                starVertices[i3 + 2] = starfieldRadius * Math.sin(phi) * Math.sin(theta);
-                starOpacities[i] = 0.5 + Math.random() * 0.5;
-                starSizes[i] = 0.5 + Math.random() * 1.5;
-                starTwinkleOffsets[i] = Math.random() * Math.PI * 2;
-            }
-
-            starGeometry.setAttribute('position', new THREE.BufferAttribute(starVertices, 3));
-            starGeometry.setAttribute('opacity', new THREE.BufferAttribute(starOpacities, 1));
-            starGeometry.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
-            starGeometry.setAttribute('twinkleOffset', new THREE.BufferAttribute(starTwinkleOffsets, 1));
-
-            const starMaterial = new THREE.ShaderMaterial({
-                uniforms: { time: { value: 0.0 }, pointSize: { value: 2.0 } },
-                vertexShader: `
-                    attribute float opacity; attribute float size; attribute float twinkleOffset;
-                    uniform float time; varying float vOpacity;
-                    void main() {
-                        float twinkleFactor = sin(time * 2.0 + twinkleOffset) * 0.5 + 0.5;
-                        vOpacity = opacity * twinkleFactor;
-                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                        gl_PointSize = size * (200.0 / -mvPosition.z);
-                        gl_Position = projectionMatrix * mvPosition;
-                    }`,
-                fragmentShader: `
-                    varying float vOpacity;
-                    void main() {
-                        float r = dot(gl_PointCoord - 0.5, gl_PointCoord - 0.5);
-                        if (r > 0.25) discard;
-                        gl_FragColor = vec4(1.0, 1.0, 1.0, vOpacity);
-                    }`,
-                blending: THREE.AdditiveBlending, depthWrite: false, transparent: true
-            });
-
-            stars = new THREE.Points(starGeometry, starMaterial);
-            scene.add(stars);
-        }
-
-        function createMoon(lightPosition) {
-            const moonGeometry = new THREE.SphereGeometry(20, 64, 64);
-            const moonMaterial = new THREE.MeshStandardMaterial({
-                color: 0xA9A9A9, emissive: 0xFFFFAA, emissiveIntensity: 0.5,
-                roughness: 0.9, metalness: 0.0
-            });
-            moon = new THREE.Mesh(moonGeometry, moonMaterial);
-            moon.position.copy(lightPosition).multiplyScalar(7);
-            moon.castShadow = false;
-            moon.receiveShadow = false;
-            scene.add(moon);
+            hCrossInstancedMesh.instanceMatrix.needsUpdate = true;
+            vCrossInstancedMesh.instanceMatrix.needsUpdate = true;
+            horizontalBarInstancedMesh.instanceMatrix.needsUpdate = true;
+            verticalBarInstancedMesh.instanceMatrix.needsUpdate = true;
         }
 
         function setupEventListeners() {
             document.addEventListener('mousemove', onDocumentMouseMove);
             document.addEventListener('keydown', onKeyDown);
             document.addEventListener('keyup', onKeyUp);
-            window.addEventListener('resize', onWindowResize, false);
-            document.body.addEventListener('click', () => { if (!isPointerLocked) renderer.domElement.requestPointerLock(); });
+            document.body.addEventListener('click', handleDocumentClick);
             document.addEventListener('pointerlockchange', onPointerLockChange);
-            document.addEventListener('pointerlockerror', () => console.error('Pointer Lock Error'));
+            document.addEventListener('pointerlockerror', (e) => console.error('Pointer Lock Error:', e));
+
+            [settingsWindow, minigamesWindow, cubicShopWindow].forEach(win => {
+                if (win) win.addEventListener('mousedown', (e) => e.stopPropagation());
+            });
+
+            if (isMobileDevice()) {
+
+                joystickContainer.addEventListener('touchstart', onJoystickTouchStart, { passive: false });
+                joystickContainer.addEventListener('touchmove', onJoystickTouchMove, { passive: false });
+                joystickContainer.addEventListener('touchend', onJoystickTouchEnd, { passive: false });
+
+                document.addEventListener('touchstart', onDocumentTouchStart, { passive: false });
+                document.addEventListener('touchmove', onDocumentTouchMove, { passive: false });
+                document.addEventListener('touchend', onDocumentTouchEnd, { passive: false });
+
+                fpsCounterElement.addEventListener('touchstart', onFPSTouchStart, { passive: false });
+
+                window.addEventListener('orientationchange', checkOrientation);
+                window.addEventListener('resize', checkOrientation);
+                document.addEventListener('fullscreenchange', updateMobileControlsVisibility);
+                document.addEventListener('webkitfullscreenchange', updateMobileControlsVisibility);
+                document.addEventListener('mozFullscreenChange', updateMobileControlsVisibility);
+                document.addEventListener('MSFullscreenChange', updateMobileControlsVisibility);
+            }
+
+            window.addEventListener('resize', onWindowResize, false);
+
+            window.addEventListener("gamepadconnected", (e) => {
+                console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+                    e.gamepad.index, e.gamepad.id,
+                    e.gamepad.buttons.length, e.gamepad.axes.length);
+                gamepadIndex = e.gamepad.index;
+                const currentTime = performance.now();
+                if (currentInputType !== 'gamepad' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                    currentInputType = 'gamepad';
+                    lastInputTypeChangeTime = currentTime;
+                    updateInstructions();
+                    updateCursorVisibility();
+                    createAnnouncement("Controller Detected", "assests/images/Blanck_Canvas/Global_Sprites/PS_Controller.webp");
+                }
+            });
+
+            window.addEventListener("gamepaddisconnected", (e) => {
+                console.log("Gamepad disconnected from index %d: %s",
+                    e.gamepad.index, e.gamepad.id);
+                if (gamepadIndex === e.gamepad.index) {
+                    gamepadIndex = -1;
+                }
+                const currentTime = performance.now();
+                if (!isMobileDevice() && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                    currentInputType = 'keyboard';
+                    lastInputTypeChangeTime = currentTime;
+                    updateInstructions();
+                    updateCursorVisibility();
+                }
+            });
         }
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        }
-
-        function onDocumentMouseMove(event) {
-            if (isPointerLocked) {
-                cameraYaw -= event.movementX * mouseSensitivity;
-                cameraPitch -= event.movementY * mouseSensitivity;
-                cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
+        function toggleSettingsWindow() {
+            const isVisible = settingsWindow.style.display === 'block';
+            if (isVisible) {
+                settingsWindow.style.display = 'none';
+                if (!isMinigamesOpen && !isCubicShopOpen && !isMobileDevice()) {
+                    try {
+                        renderer.domElement.requestPointerLock();
+                    } catch (e) {
+                        console.error("Error requesting pointer lock:", e);
+                    }
+                }
+            } else {
+                settingsWindow.style.display = 'block';
+                if (isPointerLocked) {
+                    document.exitPointerLock();
+                }
             }
         }
 
-        function onKeyDown(event) {
-            const gameControlKeys = ['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'ShiftLeft', 'ControlLeft'];
-            if (gameControlKeys.includes(event.code)) event.preventDefault();
-            keysPressed[event.code] = true;
+        function onSettingsMouseDown(e) {
+            isDraggingSettings = true;
+            dragOffsetX = e.clientX - settingsWindow.offsetLeft;
+            dragOffsetY = e.clientY - settingsWindow.offsetTop;
+        }
 
-            if (event.code === 'Space' && !event.repeat) {
-                spacebarHeld = true;
-                const currentTime = performance.now();
-                if (currentTime - lastSpacePressTime < doubleTapThreshold) {
-                    isFlying = !isFlying;
-                    verticalVelocity = 0;
-                    isJumping = false;
-                    lastSpacePressTime = 0;
+        function onSettingsMouseMove(e) {
+            if (isDraggingSettings) {
+                let newX = e.clientX - dragOffsetX;
+                let newY = e.clientY - dragOffsetY;
+
+                const maxX = window.innerWidth - settingsWindow.offsetWidth;
+                const maxY = window.innerHeight - settingsWindow.offsetHeight;
+                newX = Math.max(0, Math.min(newX, maxX));
+                newY = Math.max(0, Math.min(newY, maxY));
+
+                settingsWindow.style.left = `${newX}px`;
+                settingsWindow.style.top = `${newY}px`;
+                if (settingsWindow.style.transform !== 'none') {
+                    settingsWindow.style.transform = 'none';
+                }
+            }
+        }
+
+        function onSettingsMouseUp() {
+            isDraggingSettings = false;
+        }
+
+        function makeEditable(spanElement, sliderElement, formatFunction) {
+            spanElement.addEventListener('click', () => {
+                if (spanElement.dataset.editing === 'true') {
+                    return;
+                }
+
+                const currentValue = parseFloat(spanElement.textContent);
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.value = currentValue;
+                input.min = sliderElement.min;
+                input.max = sliderElement.max;
+                input.step = 'any';
+
+                spanElement.dataset.editing = 'true';
+
+                spanElement.parentNode.insertBefore(input, spanElement);
+                spanElement.parentNode.removeChild(spanElement);
+
+                input.focus();
+
+                const finalizeEdit = () => {
+                    if (input.parentNode && spanElement.dataset.editing === 'true') {
+                        let newValue = parseFloat(input.value);
+
+                        newValue = Math.max(parseFloat(input.min), Math.min(parseFloat(input.max), newValue));
+
+                        const step = parseFloat(sliderElement.step);
+                        if (!isNaN(step) && step !== 0) {
+                            newValue = Math.round(newValue / step) * step;
+                        }
+
+
+                        sliderElement.value = newValue;
+                        spanElement.textContent = formatFunction(newValue);
+
+                        input.parentNode.replaceChild(spanElement, input);
+
+                        spanElement.dataset.editing = 'false';
+
+                        const event = new Event('input', { bubbles: true });
+                        sliderElement.dispatchEvent(event);
+                    }
+                    input.removeEventListener('blur', finalizeEdit);
+                    input.removeEventListener('keydown', handleKeydown);
+                };
+
+                const handleKeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        finalizeEdit();
+                    }
+                };
+
+                input.addEventListener('blur', finalizeEdit);
+                input.addEventListener('keydown', handleKeydown);
+            });
+        }
+
+        function setupSettingsWindow() {
+            settingsWindow = document.getElementById('settings-window');
+            const settingsHeader = settingsWindow.querySelector('.window-header');
+
+            settingsHeader.addEventListener('mousedown', onSettingsMouseDown);
+            document.addEventListener('mousemove', onSettingsMouseMove);
+            document.addEventListener('mouseup', onSettingsMouseUp);
+
+            const antialiasingToggle = document.getElementById('antialiasing-toggle');
+            const pixelRatioSlider = document.getElementById('pixel-ratio-slider');
+            const pixelRatioValue = document.getElementById('pixel-ratio-value');
+            const shadowMapSlider = document.getElementById('shadow-map-slider');
+            const shadowMapValue = document.getElementById('shadow-map-value');
+            const toneMappingSelect = document.getElementById('tone-mapping-select');
+            const exposureSlider = document.getElementById('exposure-slider');
+            const exposureValue = document.getElementById('exposure-value');
+            const fogToggle = document.getElementById('fog-toggle');
+            const fogDensitySlider = document.getElementById('fog-density-slider');
+            const fogDensityValue = document.getElementById('fog-density-value');
+
+            antialiasingToggle.checked = gameSettings.antialias;
+            pixelRatioSlider.value = gameSettings.pixelRatio;
+            pixelRatioValue.textContent = gameSettings.pixelRatio.toFixed(2);
+            shadowMapSlider.value = gameSettings.shadowMapSize;
+            shadowMapValue.textContent = gameSettings.shadowMapSize;
+            toneMappingSelect.value = gameSettings.toneMapping;
+            exposureSlider.value = gameSettings.toneMappingExposure;
+            exposureValue.textContent = gameSettings.toneMappingExposure.toFixed(1);
+            fogToggle.checked = gameSettings.fogEnabled;
+            fogDensitySlider.value = gameSettings.fogDensity;
+            fogDensityValue.textContent = gameSettings.fogDensity.toFixed(5);
+
+            antialiasingToggle.addEventListener('change', (e) => {
+                gameSettings.antialias = e.target.checked;
+                saveSettings();
+                createAnnouncement("Refresh required for this setting to take effect.", "assests/images/Blanck_Canvas/Global_Sprites/Alert.webp");
+            });
+            pixelRatioSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                gameSettings.pixelRatio = value;
+                pixelRatioValue.textContent = value.toFixed(2);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, value));
+                saveSettings();
+            });
+            shadowMapSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                gameSettings.shadowMapSize = value;
+                shadowMapValue.textContent = value;
+                directionalLight.shadow.mapSize.width = value;
+                directionalLight.shadow.mapSize.height = value;
+                if (directionalLight.shadow.map) {
+                    directionalLight.shadow.map.dispose();
+                    directionalLight.shadow.map = null;
+                }
+                saveSettings();
+            });
+            toneMappingSelect.addEventListener('change', (e) => {
+                const value = parseInt(e.target.value);
+                renderer.toneMapping = value;
+                gameSettings.toneMapping = value;
+                saveSettings();
+            });
+            exposureSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                renderer.toneMappingExposure = value;
+                gameSettings.toneMappingExposure = value;
+                exposureValue.textContent = value.toFixed(1);
+                saveSettings();
+            });
+            fogToggle.addEventListener('change', (e) => {
+                gameSettings.fogEnabled = e.target.checked;
+                if (gameSettings.fogEnabled) {
+                    scene.fog = new THREE.FogExp2(0x0A0A2A, gameSettings.fogDensity);
                 } else {
-                    lastSpacePressTime = currentTime;
-                    if (!isFlying && !isJumping && Math.abs(camera.position.y - currentBaseCameraHeight) < 0.1) {
-                        isJumping = true;
-                        verticalVelocity = jumpStrength;
+                    scene.fog = null;
+                }
+                saveSettings();
+            });
+            fogDensitySlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                gameSettings.fogDensity = value;
+                fogDensityValue.textContent = value.toFixed(5);
+                if (scene.fog) {
+                    scene.fog.density = value;
+                }
+                saveSettings();
+            });
+
+            makeEditable(pixelRatioValue, pixelRatioSlider, (val) => val.toFixed(2));
+            makeEditable(shadowMapValue, shadowMapSlider, (val) => val.toString());
+            makeEditable(exposureValue, exposureSlider, (val) => val.toFixed(1));
+            makeEditable(fogDensityValue, fogDensitySlider, (val) => val.toFixed(5));
+
+
+            const gridStyleSlider = document.getElementById('grid-style-slider');
+            const gridStyleValue = document.getElementById('grid-style-value');
+            const textureSizeSlider = document.getElementById('texture-size-slider');
+            const textureSizeValue = document.getElementById('texture-size-value');
+            const gridCrossLengthSlider = document.getElementById('grid-cross-length-slider');
+            const gridCrossLengthValue = document.getElementById('grid-cross-length-value');
+            const gridCrossWidthSlider = document.getElementById('grid-cross-width-slider');
+            const gridCrossWidthValue = document.getElementById('grid-cross-width-value');
+            const gridBarWidthSlider = document.getElementById('grid-bar-width-slider');
+            const gridBarWidthValue = document.getElementById('grid-bar-width-value');
+
+            gridStyleSlider.value = gameSettings.gridTransition;
+            updateGridStyleLabel(gameSettings.gridTransition);
+            textureSizeSlider.value = gameSettings.textureSize;
+            textureSizeValue.textContent = gameSettings.textureSize;
+            gridCrossLengthSlider.value = gameSettings.gridCrossLength;
+            gridCrossLengthValue.textContent = gameSettings.gridCrossLength.toFixed(1);
+            gridCrossWidthSlider.value = gameSettings.gridCrossWidth;
+            gridCrossWidthValue.textContent = gameSettings.gridCrossWidth.toFixed(1);
+            gridBarWidthSlider.value = gameSettings.gridBarWidth;
+            gridBarWidthValue.textContent = gameSettings.gridBarWidth.toFixed(1);
+
+            gridStyleSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                gameSettings.gridTransition = value;
+                updateGridStyleLabel(value);
+                saveSettings();
+            });
+
+            textureSizeSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                gameSettings.textureSize = value;
+                gameSettings.gridSpacing = value;
+                textureSizeValue.textContent = value;
+                updateTextureSize();
+                saveSettings();
+                createInstancedGrid();
+            });
+
+            const gridUpdateHandler = () => {
+                createInstancedGrid();
+                updateGridTransition();
+                saveSettings();
+            };
+
+            gridCrossLengthSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                gameSettings.gridCrossLength = value;
+                gridCrossLengthValue.textContent = value.toFixed(1);
+                gridUpdateHandler();
+            });
+            gridCrossWidthSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                gameSettings.gridCrossWidth = value;
+                gridCrossWidthValue.textContent = value.toFixed(1);
+                gridUpdateHandler();
+            });
+            gridBarWidthSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                gameSettings.gridBarWidth = value;
+                gridBarWidthValue.textContent = value.toFixed(1);
+                gridUpdateHandler();
+            });
+
+            makeEditable(textureSizeValue, textureSizeSlider, (val) => val.toString());
+            makeEditable(gridCrossLengthValue, gridCrossLengthSlider, (val) => val.toFixed(1));
+            makeEditable(gridCrossWidthValue, gridCrossWidthSlider, (val) => val.toFixed(1));
+            makeEditable(gridBarWidthValue, gridBarWidthSlider, (val) => val.toFixed(1));
+
+            const mouseSensitivitySlider = document.getElementById('mouse-sensitivity-slider');
+            const mouseSensitivityValue = document.getElementById('mouse-sensitivity-value');
+            mouseSensitivitySlider.value = gameSettings.mouseSensitivity;
+            mouseSensitivityValue.textContent = gameSettings.mouseSensitivity.toFixed(4);
+            mouseSensitivitySlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                gameSettings.mouseSensitivity = value;
+                mouseSensitivityValue.textContent = value.toFixed(4);
+                saveSettings();
+            });
+
+            makeEditable(mouseSensitivityValue, mouseSensitivitySlider, (val) => val.toFixed(4));
+
+
+            const pmAccelSlider = document.getElementById('pm-accel-slider');
+            const pmAccelValue = document.getElementById('pm-accel-value');
+            pmAccelSlider.value = gameSettings.pm_accel;
+            pmAccelValue.textContent = gameSettings.pm_accel.toFixed(1);
+            pmAccelSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                PM_ACCEL = value;
+                pmAccelValue.textContent = value.toFixed(1);
+                saveSettings();
+            });
+
+            const pmAirAccelSlider = document.getElementById('pm-air-accel-slider');
+            const pmAirAccelValue = document.getElementById('pm-air-accel-value');
+            pmAirAccelSlider.value = gameSettings.pm_air_accel;
+            pmAirAccelValue.textContent = gameSettings.pm_air_accel.toFixed(1);
+            pmAirAccelSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                PM_AIR_ACCEL = value;
+                pmAirAccelValue.textContent = value.toFixed(1);
+                saveSettings();
+            });
+
+            const pmFrictionSlider = document.getElementById('pm-friction-slider');
+            const pmFrictionValue = document.getElementById('pm-friction-value');
+            pmFrictionSlider.value = gameSettings.pm_friction;
+            pmFrictionValue.textContent = gameSettings.pm_friction.toFixed(1);
+            pmFrictionSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                PM_FRICTION = value;
+                pmFrictionValue.textContent = value.toFixed(1);
+                saveSettings();
+            });
+
+            const pmGravitySlider = document.getElementById('pm-gravity-slider');
+            const pmGravityValue = document.getElementById('pm-gravity-value');
+            pmGravitySlider.value = gameSettings.pm_gravity;
+            pmGravityValue.textContent = gameSettings.pm_gravity.toFixed(0);
+            pmGravitySlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                PM_GRAVITY = value;
+                pmGravityValue.textContent = value.toFixed(0);
+                saveSettings();
+            });
+
+            const pmJumpStrengthSlider = document.getElementById('pm-jump-strength-slider');
+            const pmJumpStrengthValue = document.getElementById('pm-jump-strength-value');
+            pmJumpStrengthSlider.value = gameSettings.pm_jump_strength;
+            pmJumpStrengthValue.textContent = gameSettings.pm_jump_strength.toFixed(1);
+            pmJumpStrengthSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                PM_JUMP_STRENGTH = value;
+                pmJumpStrengthValue.textContent = value.toFixed(1);
+                saveSettings();
+            });
+
+            const maxSpeedSlider = document.getElementById('max-speed-slider');
+            const maxSpeedValue = document.getElementById('max-speed-value');
+            maxSpeedSlider.value = gameSettings.max_speed;
+            maxSpeedValue.textContent = gameSettings.max_speed.toFixed(0);
+            maxSpeedSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                MAX_SPEED = value;
+                maxSpeedValue.textContent = value.toFixed(0);
+                saveSettings();
+            });
+
+            const noclipSpeedSlider = document.getElementById('noclip-speed-slider');
+            const noclipSpeedValue = document.getElementById('noclip-speed-value');
+            noclipSpeedSlider.value = gameSettings.noclip_speed;
+            noclipSpeedValue.textContent = gameSettings.noclip_speed.toFixed(0);
+            noclipSpeedSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                NOCLIP_SPEED = value;
+                noclipSpeedValue.textContent = value.toFixed(0);
+                saveSettings();
+            });
+
+            makeEditable(pmAccelValue, pmAccelSlider, (val) => val.toFixed(1));
+            makeEditable(pmAirAccelValue, pmAirAccelSlider, (val) => val.toFixed(1));
+            makeEditable(pmFrictionValue, pmFrictionSlider, (val) => val.toFixed(1));
+            makeEditable(pmGravityValue, pmGravitySlider, (val) => val.toFixed(0));
+            makeEditable(pmJumpStrengthValue, pmJumpStrengthSlider, (val) => val.toFixed(1));
+            makeEditable(maxSpeedValue, maxSpeedSlider, (val) => val.toFixed(0));
+            makeEditable(noclipSpeedValue, noclipSpeedSlider, (val) => val.toFixed(0));
+        }
+
+        function updateGridStyleLabel(value) {
+            const gridStyleValue = document.getElementById('grid-style-value');
+            if (value <= 0.05) {
+                gridStyleValue.textContent = '3D';
+            } else if (value >= 0.95) {
+                gridStyleValue.textContent = '2D';
+            } else {
+                gridStyleValue.textContent = 'Mix';
+            }
+        }
+
+        function updateTextureSize() {
+            if (groundTextureMesh && groundTextureMesh.material.map) {
+                const repeatValue = groundSize / gameSettings.textureSize;
+                groundTextureMesh.material.map.repeat.set(repeatValue, repeatValue);
+                groundTextureMesh.material.map.needsUpdate = true;
+            }
+        }
+
+
+        function toggleMinigamesWindow() {
+            isMinigamesOpen = !isMinigamesOpen;
+            minigamesWindow.classList.toggle('open', isMinigamesOpen);
+            updateMouseForUI();
+        }
+
+        function toggleCubicShopWindow() {
+            isCubicShopOpen = !isCubicShopOpen;
+            cubicShopWindow.classList.toggle('open', isCubicShopOpen);
+            updateMouseForUI();
+        }
+
+        function updateMouseForUI() {
+            const anyWindowOpen = isMinigamesOpen || isCubicShopOpen || settingsWindow.style.display === 'block';
+            if (anyWindowOpen) {
+                if (isPointerLocked) {
+                    document.exitPointerLock();
+                }
+            } else {
+                if (!isPointerLocked && !isMobileDevice()) {
+                    try {
+                        renderer.domElement.requestPointerLock();
+                    } catch (e) {
+                        console.error("Error requesting pointer lock:", e);
+                    }
+                }
+            }
+            updateCursorVisibility();
+        }
+
+        function handleDocumentClick(event) {
+            const clickedInsideMinigames = minigamesWindow.contains(event.target);
+            const clickedInsideCubicShop = cubicShopWindow.contains(event.target);
+            const clickedInsideSettings = settingsWindow.contains(event.target);
+            const clickedInsideMobileToggles = mobileWindowToggles.contains(event.target);
+
+            if (!clickedInsideMinigames && !clickedInsideCubicShop && !clickedInsideSettings && !clickedInsideMobileToggles) {
+                if (isMinigamesOpen) {
+                    toggleMinigamesWindow();
+                }
+                if (isCubicShopOpen) {
+                    toggleCubicShopWindow();
+                }
+
+                if (!isPointerLocked && !isMobileDevice() && settingsWindow.style.display !== 'block') {
+                    try {
+                        renderer.domElement.requestPointerLock();
+                    } catch (e) {
+                        console.error("Error requesting pointer lock:", e);
                     }
                 }
             }
         }
 
+        function isMobileDevice() {
+            const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            return isMobile;
+        }
+
+        function isGamepadConnected() {
+            const gamepads = navigator.getGamepads();
+            for (let i = 0; i < gamepads.length; i++) {
+                if (gamepads[i]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function updateInstructions() {
+            let instructionsText = "";
+            const currentTime = performance.now();
+
+            if (isMobileDevice()) {
+                instructionsText = `
+                    Tap to Enter!
+                    <br>
+                    Double-tap FPS to open Settings
+                `;
+                mobileControlsElement.style.display = 'flex';
+                mobileWindowToggles.classList.add('active');
+                if (currentInputType !== 'mobile' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                    currentInputType = 'mobile';
+                    lastInputTypeChangeTime = currentTime;
+                }
+            } else if (isGamepadConnected()) {
+                instructionsText = `
+                    Press Start to Play
+                    <br>
+                    L Joystick to move
+                    <br>
+                    R Joystick to look around
+                    <br>
+                    A / X to jump
+                    <br>
+                    B / O to Crouch
+                    <br>
+                    X / Square to Sprint
+                    <br>
+                    D-pad Right for Minigames
+                    <br>
+                    D-pad Left for Shop
+                `;
+                mobileControlsElement.style.display = 'none';
+                mobileWindowToggles.classList.remove('active');
+                if (currentInputType !== 'gamepad' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                    currentInputType = 'gamepad';
+                    lastInputTypeChangeTime = currentTime;
+                }
+            } else {
+                instructionsText = `
+                    Click to enter!
+                    <br>
+                    Use Arrow Keys or WASD to move
+                    <br>
+                    E for Minigames, Q for Shop
+                    <br>
+                    M for Settings
+                    <br>
+                    Press ESC to release mouse
+                    <br>
+                    Hold SHIFT for Sprint
+                    <br>
+                    Hold CTRL for Crouch
+                    <br>
+                    Press SPACE to Jump
+                `;
+                mobileControlsElement.style.display = 'none';
+                mobileWindowToggles.classList.remove('active');
+                if (currentInputType !== 'keyboard' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                    currentInputType = 'keyboard';
+                    lastInputTypeChangeTime = currentTime;
+                }
+            }
+            instructionsElement.innerHTML = instructionsText;
+        }
+
+
+        function updateMobileControlsVisibility() {
+            if (isMobileDevice()) {
+                const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+
+                if (isFullscreen && isLandscape) {
+                    mobileControlsElement.style.display = 'flex';
+                    mobileControlsElement.classList.add('active');
+                    mobileWindowToggles.classList.add('active');
+                    updateButtonSprites();
+                } else {
+                    mobileControlsElement.style.display = 'none';
+                    mobileControlsElement.classList.remove('active');
+                    mobileWindowToggles.classList.remove('active');
+                }
+            } else {
+                mobileControlsElement.style.display = 'none';
+                mobileWindowToggles.classList.remove('active');
+            }
+        }
+
+        function checkOrientation() {
+            if (isMobileDevice()) {
+                if (window.innerHeight > window.innerWidth) {
+                    isLandscape = false;
+                    orientationMessage.style.display = 'flex';
+                    gameElementsWrapper.style.display = 'none';
+                } else {
+                    isLandscape = true;
+                    orientationMessage.style.display = 'none';
+                    gameElementsWrapper.style.display = 'contents';
+                }
+            } else {
+                isLandscape = true;
+                orientationMessage.style.display = 'none';
+                gameElementsWrapper.style.display = 'contents';
+            }
+            onWindowResize();
+            updateMobileControlsVisibility();
+        }
+
+        function onWindowResize() {
+            if (gameElementsWrapper.style.display !== 'none') {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.domElement.style.width = '100vw';
+                renderer.domElement.style.height = '100vh';
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, gameSettings.pixelRatio));
+            }
+        }
+
+        function onDocumentMouseMove(event) {
+            if (isPointerLocked && isLandscape) {
+                cameraYaw -= event.movementX * gameSettings.mouseSensitivity;
+                cameraPitch -= event.movementY * gameSettings.mouseSensitivity;
+                cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
+            }
+
+            const currentTime = performance.now();
+            if (currentInputType !== 'keyboard' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                currentInputType = 'keyboard';
+                lastInputTypeChangeTime = currentTime;
+                updateInstructions();
+            }
+
+            isMouseActive = true;
+            clearTimeout(mouseActivityTimeout);
+            mouseActivityTimeout = setTimeout(() => {
+                isMouseActive = false;
+                updateCursorVisibility();
+            }, 1000);
+
+            updateCursorVisibility();
+        }
+
+        function onDocumentTouchStart(event) {
+            if (isMobileDevice() && !document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement && isLandscape) {
+                const element = document.body;
+                try {
+                    if (element.requestFullscreen) {
+                        element.requestFullscreen();
+                    } else if (element.webkitRequestFullscreen) {
+                        element.webkitRequestFullscreen();
+                    } else if (element.msRequestFullscreen) {
+                        element.msRequestFullscreen();
+                    } else if (element.mozRequestFullScreen) {
+                        element.mozRequestFullScreen();
+                    }
+                } catch (e) {
+                    console.error("Error requesting fullscreen:", e);
+                }
+            }
+
+            if (isMobileDevice() && !hasMobileInteractionStarted && isLandscape) {
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.pointerEvents = 'none';
+                hasMobileInteractionStarted = true;
+            }
+
+            if ((isPointerLocked || (isMobileDevice() && hasMobileInteractionStarted)) && isLandscape) {
+                for (let i = 0; i < event.changedTouches.length; i++) {
+                    const touch = event.changedTouches[i];
+                    if (!joystickContainer.contains(touch.target) && !touch.target.classList.contains('action-button') && !mobileWindowToggles.contains(touch.target) && touch.target.id !== 'fps-counter') {
+                        touchCameraActive = true;
+                        lastTouchX = touch.clientX;
+                        lastTouchY = touch.clientY;
+                        touchIdentifierForCamera = touch.identifier;
+                        break;
+                    }
+                }
+            }
+        }
+
+        function onDocumentTouchMove(event) {
+            if (touchCameraActive && isLandscape) {
+                event.preventDefault();
+                let currentTouch = null;
+                for (let i = 0; i < event.changedTouches.length; i++) {
+                    if (event.changedTouches[i].identifier === touchIdentifierForCamera) {
+                        currentTouch = event.changedTouches[i];
+                        break;
+                    }
+                }
+
+                if (currentTouch) {
+                    const mobileSensitivityMultiplier = 5;
+                    const movementX = currentTouch.clientX - lastTouchX;
+                    const movementY = currentTouch.clientY - lastTouchY;
+                    cameraYaw -= movementX * gameSettings.mouseSensitivity * mobileSensitivityMultiplier;
+                    cameraPitch -= movementY * gameSettings.mouseSensitivity * mobileSensitivityMultiplier;
+                    cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
+                    lastTouchX = currentTouch.clientX;
+                    lastTouchY = currentTouch.clientY;
+                }
+            }
+        }
+
+        function onDocumentTouchEnd(event) {
+            for (let i = 0; i < event.changedTouches.length; i++) {
+                if (event.changedTouches[i].identifier === touchIdentifierForCamera) {
+                    touchCameraActive = false;
+                    touchIdentifierForCamera = null;
+                    break;
+                }
+            }
+        }
+
+        function onJoystickTouchStart(event) {
+            if (!isLandscape) return;
+            event.preventDefault();
+            const touch = event.changedTouches[0];
+            joystickActive = true;
+            joystickStartX = touch.clientX;
+            joystickStartY = touch.clientY;
+            touchIdentifierForJoystick = touch.identifier;
+            joystick.style.transition = 'none';
+        }
+
+        function onJoystickTouchMove(event) {
+            if (!joystickActive || !isLandscape) return;
+            event.preventDefault();
+
+            let currentTouch = null;
+            for (let i = 0; i < event.changedTouches.length; i++) {
+                if (event.changedTouches[i].identifier === touchIdentifierForJoystick) {
+                    currentTouch = event.changedTouches[i];
+                    break;
+                }
+            }
+
+            if (currentTouch) {
+                joystickCurrentX = currentTouch.clientX;
+                joystickCurrentY = currentTouch.clientY;
+
+                const deltaX = joystickCurrentX - joystickStartX;
+                const deltaY = joystickCurrentY - joystickStartY;
+
+                const maxDistance = joystickContainer.offsetWidth / 2 - joystick.offsetWidth / 2;
+                const distance = Math.min(maxDistance, Math.sqrt(deltaX * deltaX + deltaY * deltaY));
+                const angle = Math.atan2(deltaY, deltaX);
+
+                const newPosX = distance * Math.cos(angle);
+                const newPosY = distance * Math.sin(angle);
+
+                joystick.style.transform = `translate(-50%, -50%) translate(${newPosX}px, ${newPosY}px)`;
+
+                const normalizedX = newPosX / maxDistance;
+                const normalizedY = newPosY / maxDistance;
+
+                keysPressed['KeyW'] = normalizedY < -0.1;
+                keysPressed['KeyS'] = normalizedY > 0.1;
+                keysPressed['KeyA'] = normalizedX < -0.1;
+                keysPressed['KeyD'] = normalizedX > 0.1;
+            }
+        }
+
+        function onJoystickTouchEnd(event) {
+            if (!isLandscape) return;
+            for (let i = 0; i < event.changedTouches.length; i++) {
+                if (event.changedTouches[i].identifier === touchIdentifierForJoystick) {
+                    joystickActive = false;
+                    touchIdentifierForJoystick = null;
+                    joystick.style.transition = 'transform 0.1s ease-out';
+                    joystick.style.transform = 'translate(-50%, -50%)';
+                    keysPressed['KeyW'] = false;
+                    keysPressed['KeyS'] = false;
+                    keysPressed['KeyA'] = false;
+                    keysPressed['KeyD'] = false;
+                    break;
+                }
+            }
+        }
+
+        function onFPSTouchStart(event) {
+            if (!isLandscape) return;
+            event.preventDefault();
+            const currentTime = performance.now();
+
+            if (currentTime - lastFPSTouchTime < doubleTapThreshold) {
+                fpsTouchCount++;
+            } else {
+                fpsTouchCount = 1;
+            }
+
+            lastFPSTouchTime = currentTime;
+
+            if (fpsTouchCount === 2) {
+                toggleSettingsWindow();
+                fpsTouchCount = 0;
+            }
+        }
+
+        function toggleDevMode() {
+            isDevMode = !isDevMode;
+            devOverlayElement.style.display = isDevMode ? 'block' : 'none';
+            fpsGraphCanvas.style.display = isDevMode ? 'block' : 'none';
+            movementSettingsContainer.style.display = isDevMode ? 'block' : 'none';
+            gridSettingsContainer.style.display = isDevMode ? 'block' : 'none';
+
+
+            if (isDevMode) {
+                createAnnouncement("Dev Mode Enabled", "assests/images/Blanck_Canvas/Global_Sprites/Dev_Mode_ON.webp");
+            } else {
+                createAnnouncement("Dev Mode Disabled", "assests/images/Blanck_Canvas/Global_Sprites/Dev_Mode_OFF.webp");
+            }
+        }
+
+        function updateButtonActiveState(buttonId, isActive) {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                if (isActive) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            }
+        }
+
+        function toggleSprint() {
+            isSprintingToggled = !isSprintingToggled;
+            updateButtonActiveState('sprint-button', isSprintingToggled);
+            keysPressed['ShiftLeft'] = isSprintingToggled;
+            updateButtonSprites();
+        }
+
+        function toggleCrouch() {
+            isCrouchingToggled = !isCrouchingToggled;
+            updateButtonActiveState('crouch-button', isCrouchingToggled);
+            keysPressed['ControlLeft'] = isCrouchingToggled;
+            updateButtonSprites();
+        }
+
+        function toggleNoClip() {
+            isNoClipActive = !isNoClipActive;
+            if (isNoClipActive) {
+                player.velocity.set(0, 0, 0);
+                createAnnouncement("NoClip Enabled", "assests/images/Blanck_Canvas/Global_Sprites/Dev_Mode_ON.webp");
+            } else {
+                player.velocity.y = 0;
+                createAnnouncement("NoClip Disabled", "assests/images/Blanck_Canvas/Global_Sprites/Dev_Mode_OFF.webp");
+            }
+            updateButtonSprites();
+        }
+
+        function updateGridTransition() {
+            if (groundTextureMesh && instancedGridGroup && ground) {
+                const transition = gameSettings.gridTransition;
+                const inverseTransition = 1.0 - transition;
+
+                groundTextureMesh.material.opacity = transition;
+                groundTextureMesh.visible = transition > 0.01;
+
+                ground.material.opacity = inverseTransition;
+                ground.visible = transition < 0.99;
+
+                instancedGridGroup.visible = transition < 0.99;
+                if (instancedGridGroup.visible) {
+                    instancedGridGroup.children.forEach(child => {
+                        if (child.isInstancedMesh) {
+                            child.material.opacity = inverseTransition;
+                        }
+                    });
+                }
+            }
+        }
+
+
+        function onKeyDown(event) {
+            if (!isLandscape) return;
+
+            if (event.code === 'KeyE') {
+                toggleMinigamesWindow();
+                return;
+            }
+            if (event.code === 'KeyQ') {
+                toggleCubicShopWindow();
+                return;
+            }
+            if (event.code === 'KeyM') {
+                toggleSettingsWindow();
+                return;
+            }
+
+            if (event.code === 'KeyN' && isDevMode) {
+                toggleNoClip();
+            }
+
+            if (event.code === 'F3') {
+                event.preventDefault();
+                toggleDevMode();
+            }
+
+            const gameControlKeys = ['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'ShiftLeft', 'ControlLeft', 'Escape', 'KeyC', 'KeyN']; // Added KeyN
+            if (gameControlKeys.includes(event.code)) event.preventDefault();
+
+            keysPressed[event.code] = true;
+
+            const currentTime = performance.now();
+            if (currentInputType !== 'keyboard' && (currentTime - lastInputTypeChangeTime > inputSwitchCooldown)) {
+                currentInputType = 'keyboard';
+                lastInputTypeChangeTime = currentTime;
+                updateInstructions();
+            }
+
+            if (event.code === 'Escape') {
+                document.exitPointerLock();
+                loadingScreen.style.opacity = '1';
+                loadingScreen.style.pointerEvents = 'auto';
+
+                if (isMinigamesOpen) toggleMinigamesWindow();
+                if (isCubicShopOpen) toggleCubicShopWindow();
+                if (settingsWindow.style.display === 'block') toggleSettingsWindow();
+            }
+        }
+
         function onKeyUp(event) {
+            if (!isLandscape) return;
             keysPressed[event.code] = false;
-            if (event.code === 'Space') {
-                spacebarHeld = false;
+
+            if (!isMobileDevice()) {
+                if (event.code === 'ShiftLeft') {
+                    keysPressed['ShiftLeft'] = false;
+                } else if (event.code === 'ControlLeft') {
+                    keysPressed['ControlLeft'] = false;
+                }
             }
         }
 
         function onPointerLockChange() {
+            const anyWindowOpen = isMinigamesOpen || isCubicShopOpen || (settingsWindow && settingsWindow.style.display === 'block');
             if (document.pointerLockElement === renderer.domElement) {
                 isPointerLocked = true;
                 loadingScreen.style.opacity = '0';
@@ -594,56 +2540,255 @@
                 renderer.domElement.style.cursor = 'none';
             } else {
                 isPointerLocked = false;
-                loadingScreen.style.opacity = '1';
-                loadingScreen.style.pointerEvents = 'auto';
+                if (!anyWindowOpen) {
+                    loadingScreen.style.opacity = '1';
+                    loadingScreen.style.pointerEvents = 'auto';
+                }
+                renderer.domElement.style.cursor = 'grab';
+            }
+            updateCursorVisibility();
+        }
+
+        function updatePlayer(deltaTime) {
+            if (!isLandscape) return;
+
+            if (isNoClipActive) {
+                player.velocity.set(0, 0, 0);
+
+                const moveDirection = new THREE.Vector3();
+                if (keysPressed['KeyW'] || keysPressed['ArrowUp']) moveDirection.z -= 1;
+                if (keysPressed['KeyS'] || keysPressed['ArrowDown']) moveDirection.z += 1;
+                if (keysPressed['KeyA'] || keysPressed['ArrowLeft']) moveDirection.x -= 1;
+                if (keysPressed['KeyD'] || keysPressed['ArrowRight']) moveDirection.x += 1;
+
+                if (keysPressed['Space']) moveDirection.y += 1;
+                if (keysPressed['KeyC'] || keysPressed['ControlLeft']) moveDirection.y -= 1;
+
+                if (moveDirection.lengthSq() > 0) {
+                    moveDirection.normalize();
+                    moveDirection.applyEuler(new THREE.Euler(cameraPitch, cameraYaw, 0, 'YXZ'));
+                    camera.position.add(moveDirection.multiplyScalar(NOCLIP_SPEED * deltaTime));
+                }
+
+                if (gamepadIndex !== -1) {
+                    const gamepads = navigator.getGamepads();
+                    const gamepad = gamepads[gamepadIndex];
+                    if (gamepad) {
+                        const rightStickX = gamepad.axes[2];
+                        const rightStickY = gamepad.axes[3];
+                        if (Math.abs(rightStickX) > gamepadDeadzone) cameraYaw -= rightStickX * gameSettings.mouseSensitivity * 25;
+                        if (Math.abs(rightStickY) > gamepadDeadzone) cameraPitch -= rightStickY * gameSettings.mouseSensitivity * 25;
+                        cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
+
+                        const leftStickX = gamepad.axes[0];
+                        const leftStickY = gamepad.axes[1];
+                        const gamepadMoveDirection = new THREE.Vector3();
+
+                        if (Math.abs(leftStickX) > gamepadDeadzone) gamepadMoveDirection.x += leftStickX;
+                        if (Math.abs(leftStickY) > gamepadDeadzone) gamepadMoveDirection.z += leftStickY;
+
+                        if (gamepad.buttons[0].pressed) gamepadMoveDirection.y += 1;
+                        if (gamepad.buttons[1].pressed) gamepadMoveDirection.y -= 1;
+
+                        if (gamepadMoveDirection.lengthSq() > 0) {
+                            gamepadMoveDirection.normalize();
+                            gamepadMoveDirection.applyEuler(new THREE.Euler(cameraPitch, cameraYaw, 0, 'YXZ'));
+                            camera.position.add(gamepadMoveDirection.multiplyScalar(NOCLIP_SPEED * deltaTime));
+                        }
+                        if (gamepad.buttons[3].pressed && !gamepadButton3PreviouslyPressed && isDevMode) {
+                            toggleNoClip();
+                        }
+                        gamepadButton3PreviouslyPressed = gamepad.buttons[3].pressed;
+                    }
+                }
+
+            } else {
+                const isCrouching = keysPressed['ControlLeft'] || keysPressed['ControlRight'] || isCrouchingToggled;
+
+                let targetBaseHeight = isCrouching ? crouchCameraHeight : normalCameraHeight;
+                currentBaseCameraHeight += (targetBaseHeight - currentBaseCameraHeight) * 0.15;
+
+                const onGroundNow = camera.position.y <= currentBaseCameraHeight + 0.01;
+                if (onGroundNow && player.velocity.y < 0) {
+                    player.velocity.y = 0;
+                    camera.position.y = currentBaseCameraHeight;
+                }
+                player.onGround = onGroundNow;
+
+                if (player.onGround) {
+                    applyFriction(deltaTime);
+                } else {
+                    player.velocity.y -= PM_GRAVITY * deltaTime;
+                }
+
+                const wishDirection = new THREE.Vector3();
+                if (keysPressed['KeyW'] || keysPressed['ArrowUp']) wishDirection.z -= 1;
+                if (keysPressed['KeyS'] || keysPressed['ArrowDown']) wishDirection.z += 1;
+                if (keysPressed['KeyA'] || keysPressed['ArrowLeft']) wishDirection.x -= 1;
+                if (keysPressed['KeyD'] || keysPressed['ArrowRight']) wishDirection.x += 1;
+
+                if (wishDirection.lengthSq() > 0) {
+                    wishDirection.normalize();
+                }
+                wishDirection.applyEuler(new THREE.Euler(0, cameraYaw, 0, 'YXZ'));
+
+
+                let wishSpeed = 20.0;
+                if (isCrouching) {
+                    wishSpeed = 8.0;
+                } else if (keysPressed['ShiftLeft'] || keysPressed['ShiftRight'] || isSprintingToggled) {
+                    wishSpeed = 50.0;
+                }
+
+                const accel = player.onGround ? PM_ACCEL : PM_AIR_ACCEL;
+                accelerate(wishDirection, wishSpeed, accel, deltaTime);
+
+                const horizontalVelocity = new THREE.Vector2(player.velocity.x, player.velocity.z);
+                if (horizontalVelocity.length() > MAX_SPEED) {
+                    horizontalVelocity.setLength(MAX_SPEED);
+                    player.velocity.x = horizontalVelocity.x;
+                    player.velocity.z = horizontalVelocity.y;
+                }
+
+                if (player.onGround && (keysPressed['Space'])) {
+                    player.velocity.y = PM_JUMP_STRENGTH;
+                    player.onGround = false;
+                }
+
+                if (gamepadIndex !== -1) {
+                    const gamepads = navigator.getGamepads();
+                    const gamepad = gamepads[gamepadIndex];
+                    if (gamepad) {
+                        const rightStickX = gamepad.axes[2];
+                        const rightStickY = gamepad.axes[3];
+                        if (Math.abs(rightStickX) > gamepadDeadzone) cameraYaw -= rightStickX * gameSettings.mouseSensitivity * 25;
+                        if (Math.abs(rightStickY) > gamepadDeadzone) cameraPitch -= rightStickY * gameSettings.mouseSensitivity * 25;
+                        cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
+
+                        if (gamepad.buttons[3].pressed && !gamepadButton3PreviouslyPressed && isDevMode) {
+                            toggleNoClip();
+                        }
+                        gamepadButton3PreviouslyPressed = gamepad.buttons[3].pressed;
+                    }
+                }
+
+                camera.position.add(player.velocity.clone().multiplyScalar(deltaTime));
+
+                if (camera.position.y < currentBaseCameraHeight) {
+                    camera.position.y = currentBaseCameraHeight;
+                    player.velocity.y = 0;
+                    player.onGround = true;
+                }
+            }
+        }
+
+        function updateCursorVisibility() {
+            const anyWindowOpen = isMinigamesOpen || isCubicShopOpen || (settingsWindow && settingsWindow.style.display === 'block');
+            if (anyWindowOpen || isLoadingScreenVisible) {
+                renderer.domElement.style.cursor = 'grab';
+            } else if (isPointerLocked) {
+                renderer.domElement.style.cursor = 'none';
+            } else if (isGamepadConnected()) {
+                renderer.domElement.style.cursor = isMouseActive ? 'grab' : 'none';
+            } else {
                 renderer.domElement.style.cursor = 'grab';
             }
         }
 
-        function updatePlayer(deltaTime, speedLimitFactor) {
-            let currentSpeedMultiplier = 1.0;
-            let targetBaseHeight = normalCameraHeight;
-
-            if (keysPressed['ShiftLeft'] || keysPressed['ShiftRight']) currentSpeedMultiplier = sprintMultiplier;
-            else if (keysPressed['ControlLeft'] || keysPressed['ControlRight']) {
-                currentSpeedMultiplier = crouchMultiplier;
-                targetBaseHeight = crouchCameraHeight;
+        function updateButtonSprites() {
+            if (!isMobileDevice() || !isLandscape) {
+                return;
             }
 
-            let actualMoveSpeed = baseMoveSpeed * deltaTime * currentSpeedMultiplier * speedLimitFactor;
+            const jumpButton = document.getElementById('jump-button');
+            const sprintButton = document.getElementById('sprint-button');
+            const crouchButton = document.getElementById('crouch-button');
 
-            if (isFlying) {
-                if (spacebarHeld) camera.position.y += baseMoveSpeed * flySpeedMultiplier * deltaTime;
-                if (keysPressed['ControlLeft'] || keysPressed['ControlRight']) camera.position.y -= baseMoveSpeed * flySpeedMultiplier * deltaTime;
-                verticalVelocity = 0;
-                camera.position.y = Math.max(0.1, camera.position.y);
-            } else {
-                currentBaseCameraHeight += (targetBaseHeight - currentBaseCameraHeight) * 0.1;
-                verticalVelocity += gravity * deltaTime;
-                camera.position.y += verticalVelocity * deltaTime;
-                if (camera.position.y <= currentBaseCameraHeight) {
-                    camera.position.y = currentBaseCameraHeight;
-                    verticalVelocity = 0;
-                    isJumping = false;
+            const loadImage = (url, element, fallbackText) => {
+                const img = new Image();
+                img.onload = () => {
+                    element.style.backgroundImage = `url(${url})`;
+                    element.textContent = '';
+                };
+                img.onerror = (error) => {
+                    console.error(`Failed to load sprite for ${element.id} from ${url}:`, error);
+                    element.style.backgroundImage = 'none';
+                    element.style.backgroundColor = 'red';
+                    element.textContent = 'ERROR';
+                };
+                img.src = url;
+            };
+
+            try {
+                if (jumpButton) {
+                    jumpButton.classList.add('sprite-button');
+                    loadImage(SPRITE_JUMP, jumpButton, 'Jump');
                 }
+
+                if (sprintButton) {
+                    sprintButton.classList.add('sprite-button');
+                    loadImage(SPRITE_SPRINT, sprintButton, 'Sprint');
+                }
+
+                if (crouchButton) {
+                    crouchButton.classList.add('sprite-button');
+                    const crouchSprite = isCrouchingToggled ? SPRITE_STANDING : SPRITE_CROUCH;
+                    loadImage(crouchSprite, crouchButton, 'Crouch');
+                }
+            } catch (error) {
+                console.error("Error in updateButtonSprites function:", error);
+            }
+        }
+
+        function updateGamepadSpriteDisplays() {
+            if (!isLandscape) return;
+
+            sprintSpriteDisplayElement.style.opacity = '0';
+            sprintSpriteDisplayElement.style.transform = 'translateY(100px)';
+
+            crouchSpriteDisplayElement.style.opacity = '0';
+            crouchSpriteDisplayElement.style.transform = 'translateY(100px)';
+
+            flyingSpriteDisplayElement.style.opacity = '0';
+            flyingSpriteDisplayElement.style.transform = 'translateY(100px)';
+
+            if (!isGamepadConnected()) {
+                return;
             }
 
-            if (isPointerLocked) {
-                const forward = new THREE.Vector3();
-                camera.getWorldDirection(forward);
-                forward.y = 0;
-                forward.normalize();
-                const right = new THREE.Vector3().crossVectors(camera.up, forward).negate();
-                if (keysPressed['ArrowUp'] || keysPressed['KeyW']) camera.position.addScaledVector(forward, actualMoveSpeed);
-                if (keysPressed['ArrowDown'] || keysPressed['KeyS']) camera.position.addScaledVector(forward, -actualMoveSpeed);
-                if (keysPressed['ArrowLeft'] || keysPressed['KeyA']) camera.position.addScaledVector(right, -actualMoveSpeed);
-                if (keysPressed['ArrowRight'] || keysPressed['KeyD']) camera.position.addScaledVector(right, actualMoveSpeed);
+            const baseRightOffset = 30;
+            const spriteWidth = 80;
+            const spacing = 10;
+
+            let currentRightPosition = baseRightOffset;
+
+            const activeSprites = [];
+            if (isSprintingToggled) {
+                activeSprites.push({ element: sprintSpriteDisplayElement, sprite: SPRITE_SPRINT });
+            }
+            if (isCrouchingToggled) {
+                activeSprites.push({ element: crouchSpriteDisplayElement, sprite: SPRITE_CROUCH });
+            }
+            if (isNoClipActive) { // Show standing sprite when NoClip is active
+                activeSprites.push({ element: flyingSpriteDisplayElement, sprite: SPRITE_STANDING }); // Changed to SPRITE_STANDING
+            }
+
+            for (let i = 0; i < activeSprites.length; i++) {
+                const spriteInfo = activeSprites[i];
+                spriteInfo.element.style.right = `${currentRightPosition}px`;
+                spriteInfo.element.style.opacity = '1';
+                spriteInfo.element.style.transform = 'translateY(0)';
+                spriteInfo.element.style.backgroundImage = `url(${spriteInfo.sprite})`;
+
+                currentRightPosition += spriteWidth + spacing;
             }
         }
 
         function handleBoundaryEffects() {
+            if (!isLandscape) return 1.0;
+
             const currentTime = performance.now();
-            const effectiveBoundaryDistance = Math.max(Math.abs(camera.position.x), Math.abs(camera.position.z), Math.abs(camera.position.y));
+            const effectiveBoundaryDistance = Math.max(Math.abs(camera.position.x), Math.abs(camera.position.y), Math.abs(camera.position.z));
 
             let speedLimitFactor = 1.0;
             let currentDarknessOpacity = 0;
@@ -690,50 +2835,165 @@
 
                 if (isStoppedInBoundary && currentTime - stopTime > 2000) {
                     camera.position.set(0, normalCameraHeight, 0);
-                    cameraYaw = cameraPitch = verticalVelocity = stopTime = lastSentenceChangeTime = 0;
-                    isJumping = isFlying = isStoppedInBoundary = spacebarHeld = false;
-                    speedLimitFactor = 1.0; // Reset speed factor after teleport
+                    cameraYaw = cameraPitch = stopTime = lastSentenceChangeTime = 0;
+                    player.velocity.set(0, 0, 0);
+                    isStoppedInBoundary = false;
+                    updateButtonSprites();
                 }
 
             } else {
                 darknessOverlayElement.style.opacity = 0;
                 warningTextElement.style.opacity = 0;
-                warningTextElement.textContent = "";
                 if (isStoppedInBoundary) {
                     isStoppedInBoundary = false;
                     stopTime = 0;
                 }
             }
-            // Return the calculated speed limit factor to be used in player movement.
             return speedLimitFactor;
+        }
+
+        function createAnnouncement(text, imageUrl) {
+            const announcement = document.createElement('div');
+            announcement.className = 'announcement';
+
+            const textElement = document.createElement('p');
+            textElement.textContent = text;
+
+            const imageElement = document.createElement('img');
+            imageElement.src = imageUrl;
+            imageElement.alt = 'Announcement Icon';
+            imageElement.onerror = () => {
+                console.error(`Failed to load image: ${imageUrl}`);
+                imageElement.style.display = 'none';
+            };
+
+            const topLeftCorner = document.createElement('span');
+            topLeftCorner.className = 'corner top-left';
+
+            const topRightCorner = document.createElement('span');
+            topRightCorner.className = 'corner top-right';
+
+            const bottomLeftCorner = document.createElement('span');
+            bottomLeftCorner.className = 'corner bottom-left';
+
+            const bottomRightCorner = document.createElement('span');
+            bottomRightCorner.className = 'corner bottom-right';
+
+            announcement.appendChild(imageElement);
+            announcement.appendChild(textElement);
+            announcement.appendChild(topLeftCorner);
+            announcement.appendChild(topRightCorner);
+            announcement.appendChild(bottomLeftCorner);
+            announcement.appendChild(bottomRightCorner);
+
+            announcementContainer.appendChild(announcement);
+
+            setTimeout(() => {
+                announcement.remove();
+            }, 5000);
+        }
+
+        function updateDevOverlay(deltaTime) {
+            if (!isDevMode || !isLandscape) return;
+
+            const coords = `X: ${camera.position.x.toFixed(2)}, Y: ${camera.position.y.toFixed(2)}, Z: ${camera.position.z.toFixed(2)}`;
+
+            let ramUsage = 'N/A';
+            if (performance.memory) {
+                const usedHeap = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(2);
+                const totalHeap = (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed(2);
+                ramUsage = `${usedHeap}MB / ${totalHeap}MB`;
+            }
+
+            const renderInfo = renderer.info.render;
+            const gpuInfo = `Calls: ${renderInfo.calls}, Tris: ${renderInfo.triangles.toLocaleString()}`;
+
+            const horizontalSpeed = new THREE.Vector2(player.velocity.x, player.velocity.z).length();
+            const speedInfo = `Speed: ${horizontalSpeed.toFixed(2)}`;
+
+            const noclipStatus = `NoClip: ${isNoClipActive ? 'ON' : 'OFF'}`;
+
+            devOverlayElement.textContent =
+                `Coords: ${coords}\n` +
+                `RAM: ${ramUsage}\n` +
+                `GPU (Render): ${gpuInfo}\n` +
+                `${speedInfo}\n` +
+                `${noclipStatus}`;
+        }
+
+        function updateFPSGraph(fps) {
+            if (!isDevMode) return;
+
+            fpsHistory.push(fps);
+            if (fpsHistory.length > maxFpsHistory) {
+                fpsHistory.shift();
+            }
+
+            const w = fpsGraphCanvas.width;
+            const h = fpsGraphCanvas.height;
+            fpsGraphCtx.clearRect(0, 0, w, h);
+
+            const maxFps = Math.max(...fpsHistory, 60);
+
+            fpsGraphCtx.beginPath();
+            fpsGraphCtx.strokeStyle = 'rgba(0, 140, 255, 1)';
+            fpsGraphCtx.moveTo(0, h);
+
+            for (let i = 0; i < fpsHistory.length; i++) {
+                const x = (i / (maxFpsHistory - 1)) * w;
+                const y = h - (fpsHistory[i] / maxFps) * h;
+                fpsGraphCtx.lineTo(x, y);
+            }
+            fpsGraphCtx.stroke();
+
+            fpsGraphCtx.lineTo(w, h);
+            fpsGraphCtx.closePath();
+            fpsGraphCtx.fillStyle = 'rgba(0, 140, 255, 0.5)';
+            fpsGraphCtx.fill();
         }
 
         function animate() {
             requestAnimationFrame(animate);
 
-            const currentTime = performance.now();
-            const deltaTime = (currentTime - lastFrameTime) / 1000;
-            lastFrameTime = currentTime;
+            if (!isLandscape) {
+                return;
+            }
 
-            // Update FPS counter only every second
-            if (currentTime - lastFpsUpdateTime >= fpsUpdateInterval) {
+            try {
+                const currentTime = performance.now();
+                const deltaTime = Math.min(0.1, clock.getDelta());
                 const fps = 1 / deltaTime;
-                fpsCounterElement.textContent = `FPS: ${Math.round(fps)}`;
-                lastFpsUpdateTime = currentTime;
+                lastFrameTime = currentTime;
+
+                if (currentTime - lastFpsUpdateTime >= fpsUpdateInterval) {
+                    fpsCounterElement.textContent = `FPS: ${Math.round(fps)}`;
+                    lastFpsUpdateTime = currentTime;
+                    if (isDevMode) {
+                        updateFPSGraph(fps);
+                    }
+                }
+
+                updateGridTransition();
+                updateDevOverlay(deltaTime);
+                handleBoundaryEffects();
+                updatePlayer(deltaTime);
+
+                camera.rotation.order = 'YXZ';
+                camera.rotation.y = cameraYaw;
+                camera.rotation.x = cameraPitch;
+
+                updateGamepadSpriteDisplays();
+
+                renderer.render(scene, camera);
+
+            } catch (error) {
+                if (isDevMode) {
+                    createAnnouncement(`Animate Loop Error: ${error.message}`, "assests/images/Blanck_Canvas/Global_Sprites/Error.webp");
+                    console.error("Caught in animate loop:", error);
+                } else {
+                    throw error;
+                }
             }
-
-            const speedLimitFactor = handleBoundaryEffects();
-            updatePlayer(deltaTime, speedLimitFactor);
-
-            camera.rotation.order = 'YXZ';
-            camera.rotation.y = cameraYaw;
-            camera.rotation.x = cameraPitch;
-
-            if (stars) {
-                stars.material.uniforms.time.value = clock.getElapsedTime();
-            }
-
-            renderer.render(scene, camera);
         }
     </script>
 </body>
