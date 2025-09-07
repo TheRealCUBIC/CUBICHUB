@@ -1414,7 +1414,7 @@
             const pmremGenerator = new THREE.PMREMGenerator(renderer);
             pmremGenerator.compileEquirectangularShader();
             new THREE.RGBELoader()
-                .load('https://u.pcloud.link/publink/show?code=XZvboD5Zbp33KAGWb8h4nYYAYxX6LF8UiRd7', function (texture) {
+                .load('assests/images/Blanck_Canvas/textures/Sky/Cloudy_Sky.hdr', function (texture) {
                     const envMap = pmremGenerator.fromEquirectangular(texture).texture;
                     scene.background = envMap;
                     scene.environment = envMap;
