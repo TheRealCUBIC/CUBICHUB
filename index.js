@@ -1,5 +1,5 @@
 const API_CONFIG = {
-    key: "",
+    key: "AIzaSyDIR2eQVBzW3VsYlyX0rQqG2kKqvgla1sE",
     channelId: "UCsM3kc7cmzJ92a3A3y2wunw",
     goal: 1000000,
     cacheKey: "cubic_hub_cache_v1",
