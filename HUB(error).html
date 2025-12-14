@@ -23,6 +23,8 @@
         html {
             font-size: 18px;
             font-family: 'Arial', sans-serif;
+            overflow-x: hidden;
+            width: 100%;
         }
 
         body {
@@ -31,6 +33,21 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            overflow-x: hidden;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        #noise-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.03;
+            pointer-events: none;
         }
 
         header {
@@ -62,7 +79,7 @@
         }
 
         .logo-text {
-            font-family: 'Minecraft', cursive;
+            font-family: 'Minecraft';
             font-size: 3rem;
             letter-spacing: 0.15rem;
             color: ghostwhite;
@@ -120,7 +137,7 @@
             opacity: 0;
             pointer-events: none;
             transition: all 0.3s ease;
-            color: white;
+            color: rgb(255, 255, 255);
             padding: 5px 10px;
             font-size: 0.8rem;
             white-space: nowrap;
@@ -203,7 +220,6 @@
             transform: translate(0, 0) scale(1) rotate(180deg);
         }
 
-
         .Fiverr:hover,
         .Patreon:hover,
         .Discord:hover,
@@ -222,6 +238,14 @@
             position: relative;
         }
 
+        .mobile-social-container {
+            display: none;
+            width: 100%;
+            justify-content: center;
+            margin-top: 10rem;
+            margin-bottom: -2rem;
+        }
+
         .website-navigation {
             width: 100%;
             margin-top: -2.5rem;
@@ -237,9 +261,6 @@
 
         .website-navigation>div {
             position: relative;
-            top: auto;
-            right: auto;
-            transform: none;
             flex-shrink: 0;
         }
 
@@ -249,15 +270,15 @@
         }
 
         .website-navigation a {
+            padding: 0.3rem 0.7rem;
             text-decoration: none;
             color: #ffffff;
-            padding: 0.3rem 0.7rem;
             border-radius: 1.5px;
             transition: background-color 0.3s ease, color 0.3s ease;
-            position: relative;
-            z-index: 0;
             white-space: nowrap;
             display: block;
+            position: relative;
+            z-index: 0;
         }
 
         .website-navigation a:hover {
@@ -326,8 +347,7 @@
             transform: translate(0, 0) scale(1) rotate(180deg);
         }
 
-
-        h1 {
+        h1.coming-soon {
             font-size: 8rem;
             margin-top: 8rem;
             margin-bottom: 2rem;
@@ -339,7 +359,7 @@
             line-height: 1;
         }
 
-        main p {
+        main p.error-desc {
             font-size: 1.2rem;
             margin-top: 0;
             max-width: 1000px;
@@ -348,15 +368,6 @@
             word-break: break-word;
             padding: 0 1rem;
             text-wrap: balance;
-        }
-
-        #myVideo {
-            position: fixed;
-            right: 0;
-            bottom: 0;
-            z-index: -1;
-            min-width: 100%;
-            min-height: 100%;
         }
 
         footer {
@@ -380,13 +391,17 @@
             margin-left: 0;
         }
 
-        .version {
-            padding-left: 0;
+        .version-link {
             position: absolute;
             right: 1.5rem;
             bottom: 1rem;
             text-align: right;
+        }
+
+        .version {
             color: rgb(124, 124, 124);
+            margin-left: 0;
+            margin-top: 0;
         }
 
         a {
@@ -411,30 +426,13 @@
         }
 
         @media (max-width: 1024px) {
-            .header-content {
-                flex-wrap: wrap;
-                justify-content: center;
-                text-align: center;
-            }
-
-            .logo,
-            .social-icons {
-                margin: 0.5rem;
-                justify-content: center;
-            }
-
-            .logo {
-                width: 100%;
-            }
-
-            .social-icons {
-                width: 100%;
-                gap: 0.8rem;
-            }
-
-            .website-navigation {
-                justify-content: center;
-
+            .social-icons>div a {
+                position: relative;
+                display: block;
+                width: 60px;
+                height: 60px;
+                padding: 5px;
+                box-sizing: content-box;
             }
 
             .website-navigation h3 {
@@ -446,39 +444,49 @@
             }
         }
 
+        @media (max-width: 1000px) {
+            .logo-text {
+                font-size: 2.3rem;
+            }
+        }
+
         @media (max-width: 768px) {
-            html {
-                font-size: 16px;
+
+            .social-icons.desktop-only {
+                display: none;
+            }
+
+            .website-navigation {
+                justify-content: center;
+            }
+
+            .website-navigation h3 {
+                font-size: 0.7rem;
+                margin: 0;
+            }
+
+            .mobile-social-container {
+                display: flex;
+            }
+
+            .social-icons.mobile-only {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0px;
+            }
+
+            .header-content {
+                flex-direction: column;
             }
 
             .image img {
-                width: 50px;
-                height: 50px;
+                width: 60px;
+                height: auto;
             }
 
             .logo-text {
-                font-size: 2.2rem;
-            }
-
-            .social-icons img {
-                width: 60px;
-                height: auto;
-                margin-left: 0.5rem;
-                margin-right: 0.5rem;
-            }
-
-            h1 {
-                font-size: 4rem;
-                margin-top: 5rem;
-                margin-bottom: 1.5rem;
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            main p {
-                font-size: 1rem;
-                margin-top: 0;
-                padding: 0.1rem;
+                font-size: 2.5rem;
             }
 
             footer {
@@ -495,13 +503,23 @@
                 margin: 0.2rem 0;
             }
 
-            .version {
+            .version-link {
                 position: static;
                 right: auto;
                 bottom: auto;
                 width: 100%;
                 text-align: center;
                 margin-top: 5px;
+            }
+
+            h1.coming-soon {
+                font-size: 4rem;
+                margin-top: 12rem;
+                margin-bottom: 1.5rem;
+            }
+
+            main p.error-desc {
+                font-size: 1rem;
             }
         }
 
@@ -512,36 +530,93 @@
 
             .image img {
                 width: 40px;
-                height: 40px;
-            }
-
-            .logo-text {
-                font-size: 1.8rem;
-            }
-
-            .social-icons img {
-                width: 50px;
                 height: auto;
             }
 
-            h1 {
-                font-size: 2.5rem;
-                margin-top: 3rem;
-                margin-bottom: 1rem;
-                margin-left: auto;
-                margin-right: auto;
+            .logo-text {
+                font-size: 2.6rem;
             }
 
-            main p {
+            .website-navigation a {
+                padding: 0.3rem 0.7rem;
+
+            }
+
+            .website-navigation a::before,
+            .website-navigation a::after,
+            .website-navigation>div::before,
+            .website-navigation>div::after {
+                width: 10px;
+                height: 10px;
+            }
+
+            .website-navigation>div:hover a::before,
+            .website-navigation>div:hover::before {
+                top: -3px;
+            }
+
+            .website-navigation>div:hover a::before {
+                left: -3px;
+            }
+
+            .website-navigation>div:hover::before {
+                left: calc(100% - 7px);
+            }
+
+            .website-navigation>div:hover a::after,
+            .website-navigation>div:hover::after {
+                top: calc(100% - 7px);
+            }
+
+            .website-navigation>div:hover a::after {
+                left: calc(100% - 7px);
+            }
+
+            .website-navigation>div:hover::after {
+                left: -3px;
+            }
+
+            h1.coming-soon {
+                font-size: 3rem;
+                margin-top: 15rem;
+                margin-bottom: 1rem;
+            }
+
+            main p.error-desc {
                 font-size: 0.9rem;
-                margin-top: 0;
                 padding: 0 0.5rem;
+            }
+
+            .mobile-social-container {
+                margin-top: 20rem;
+            }
+
+            .social-icons.mobile-only a {
+                width: 40px;
+                height: 40px;
+                padding: 3px;
+            }
+
+            .social-icons.mobile-only {
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 375px) {
+            .image img {
+                width: 40px;
+                height: auto;
+            }
+
+            .logo-text {
+                font-size: 2rem;
             }
         }
     </style>
 </head>
 
 <body>
+    <canvas id="noise-canvas"></canvas>
     <header>
         <div class="header-content">
             <div class="logo">
@@ -554,7 +629,7 @@
                     <span class="logo-text">CUBIC (error)</span>
                 </a>
             </div>
-            <div class="social-icons">
+            <div class="social-icons desktop-only">
                 <div class="Youtube">
                     <a href="https://www.youtube.com/channel/UCsM3kc7cmzJ92a3A3y2wunw" target="_blank">
                         <img src="assests/images/header/Youtube.webp" alt="(error) image not found">
@@ -615,11 +690,41 @@
                 <h3><a href="HUB(error).html">CUBIC history</a></h3>
             </div>
         </div>
-        <h1>COMING SOON</h1>
-        <p>This website is still a work in progress, please be on the lookout for further updates :)</p>
-        <video autoplay muted loop id="myVideo">
-            <source src="assests/videos/error_background.mp4" type="video/mp4">
-        </video>
+
+        <h1 class="coming-soon">COMING SOON</h1>
+        <p class="error-desc">This website is still a work in progress, please be on the lookout for further updates :)
+        </p>
+
+        <div class="mobile-social-container">
+            <div class="social-icons mobile-only">
+                <div class="Youtube">
+                    <a href="https://www.youtube.com/channel/UCsM3kc7cmzJ92a3A3y2wunw" target="_blank">
+                        <img src="assests/images/Random/Youtube.webp" alt="Youtube">
+                    </a>
+                </div>
+                <div class="Fiverr">
+                    <a href="HUB(error).html">
+                        <img src="assests/images/Random/Fiverr.webp" alt="Fiverr">
+                    </a>
+                </div>
+                <div class="Patreon">
+                    <a href="HUB(error).html" target="_blank">
+                        <img src="assests/images/Random/Patreon.webp" alt="Patreon">
+                    </a>
+                </div>
+                <div class="Discord">
+                    <a href="HUB(error).html" target="_blank">
+                        <img src="assests/images/Random/Discord.webp" alt="Discord">
+                    </a>
+                </div>
+                <div class="Paypal">
+                    <a href="https://www.paypal.com/paypalme/TheRealCUBIC?country.x=MA&locale.x=en_US" target="_blank">
+                        <img src="assests/images/Random/Paypal_me.webp" alt="Paypal">
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </main>
     <footer>
         <p class="footer-text">&copy; 2024 CUBIC STUDIO. All rights reserved.</p>
@@ -628,6 +733,52 @@
             <p class="version">Alpha E010825</p>
         </a>
     </footer>
+    <script>
+        const canvas = document.getElementById('noise-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function generateNoise() {
+            const width = canvas.width;
+            const height = canvas.height;
+
+            if (width <= 0 || height <= 0) return;
+
+            const imageData = ctx.createImageData(width, height);
+            const buffer32 = new Uint32Array(imageData.data.buffer);
+            const bufferLength = buffer32.length;
+            let i = 0;
+
+            while (i < bufferLength) {
+                const color = Math.random() < 0.7 ? 0 : -1;
+                buffer32[i++] = color;
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        let toggle = true;
+
+        function loop() {
+            toggle = !toggle;
+            if (toggle) {
+                requestAnimationFrame(loop);
+                return;
+            }
+
+            generateNoise();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
 </body>
 <!-- Bubby Was Here -->
 

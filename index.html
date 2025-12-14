@@ -7,631 +7,10 @@
     <meta name="description" content="Explore creative projects from shows and comics to games and mods.">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
-    <style>
-        @font-face {
-            font-family: 'Minecraft';
-            src: url('assests/fonts/Minecraft.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            font-size: 18px;
-            font-family: 'Arial', sans-serif;
-        }
-
-        body {
-            background-color: #151515;
-            color: ghostwhite;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        header {
-            background: linear-gradient(to right, rgb(21, 21, 21), #808080);
-            width: 100%;
-            padding: 0.5rem;
-            text-align: left;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            z-index: 1;
-        }
-
-        .image img {
-            width: 80px;
-            height: auto;
-            border-radius: 5px;
-            margin-right: 1rem;
-            object-fit: contain;
-        }
-
-        .logo-text {
-            font-family: 'Minecraft';
-            font-size: 3rem;
-            letter-spacing: 0.15rem;
-            color: ghostwhite;
-            margin-right: 1rem;
-            position: relative;
-            top: 6px;
-        }
-
-        .image img:hover {
-            animation: rotate 1.2s forwards;
-        }
-
-        @keyframes rotate {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .social-icons {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .social-icons>div {
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .social-icons>div a {
-            position: relative;
-            display: block;
-            width: 75px;
-            height: 75px;
-            padding: 5px;
-            box-sizing: content-box;
-        }
-
-        .social-icons img {
-            width: 100%;
-            height: 100%;
-            display: block;
-            object-fit: contain;
-        }
-
-        .social-text {
-            position: absolute;
-            top: calc(100% + 5px);
-            left: 50%;
-            transform: translateX(-50%) translateY(10px);
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s ease;
-            color: rgb(255, 255, 255);
-            padding: 5px 10px;
-            font-size: 0.8rem;
-            white-space: nowrap;
-            z-index: 5;
-        }
-
-        .social-icons>div:hover .social-text {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .social-icons>div::before,
-        .social-icons>div::after,
-        .social-icons>div a::before,
-        .social-icons>div a::after {
-            content: '';
-            position: absolute;
-            width: 15px;
-            height: 15px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            opacity: 0;
-            transition: all 0.25s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            pointer-events: none;
-        }
-
-        .social-icons>div a::before {
-            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
-            top: 0;
-            left: 0;
-            transform: translate(0, 0) scale(0.5);
-        }
-
-        .social-icons>div a::after {
-            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
-            top: calc(100% - 15px);
-            left: calc(100% - 15px);
-            transform: translate(0, 0) scale(0.5) rotate(180deg);
-        }
-
-        .social-icons>div::before {
-            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
-            top: 0;
-            left: calc(100% - 15px);
-            transform: translate(0, 0) scale(0.5);
-        }
-
-        .social-icons>div::after {
-            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
-            top: calc(100% - 15px);
-            left: 0;
-            transform: translate(0, 0) scale(0.5) rotate(180deg);
-        }
-
-        .social-icons>div:hover a::before {
-            opacity: 1;
-            top: -5px;
-            left: -5px;
-            transform: translate(0, 0) scale(1);
-        }
-
-        .social-icons>div:hover a::after {
-            opacity: 1;
-            top: calc(100% - 10px);
-            left: calc(100% - 10px);
-            transform: translate(0, 0) scale(1) rotate(180deg);
-        }
-
-        .social-icons>div:hover::before {
-            opacity: 1;
-            top: -5px;
-            left: calc(100% - 10px);
-            transform: translate(0, 0) scale(1);
-        }
-
-        .social-icons>div:hover::after {
-            opacity: 1;
-            top: calc(100% - 10px);
-            left: -5px;
-            transform: translate(0, 0) scale(1) rotate(180deg);
-        }
-
-
-        .Fiverr:hover,
-        .Patreon:hover,
-        .Discord:hover,
-        .Paypal:hover,
-        .Youtube:hover {
-            transform: translateY(-10px);
-        }
-
-        main {
-            flex: 1;
-            padding: 2rem 1rem;
-            text-align: center;
-            width: 100%;
-            max-width: 1600px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        /* ---------------------------------------------------------------------- Website navigation section ----------------------------------------------------------------------- */
-        .website-navigation {
-            width: 100%;
-            margin-top: -2.5rem;
-            margin-bottom: 3rem;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            padding: 0.5rem 0.5rem;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            border-radius: 0 0 5px 5px;
-        }
-
-        .website-navigation>div {
-            position: relative;
-            top: auto;
-            right: auto;
-            transform: none;
-            flex-shrink: 0;
-        }
-
-        .website-navigation h3 {
-            font-size: 0.9rem;
-            margin: 0;
-        }
-
-        .website-navigation a {
-            padding: 0.3rem 0.7rem;
-            text-decoration: none;
-            color: #ffffff;
-            border-radius: 1.5px;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            white-space: nowrap;
-            display: block;
-            position: relative;
-            z-index: 0;
-        }
-
-        .website-navigation a:hover {
-            background-color: #ffffff;
-            color: #000000;
-        }
-
-        .website-navigation a::before,
-        .website-navigation a::after,
-        .website-navigation>div::before,
-        .website-navigation>div::after {
-            content: '';
-            position: absolute;
-            width: 15px;
-            height: 15px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            opacity: 0;
-            transition: all 0.25s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            pointer-events: none;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.5);
-        }
-
-        .website-navigation a::before,
-        .website-navigation a::after {
-            background-image: url('assests/images/header/L_corner_of_the_selected.webp');
-        }
-
-        .website-navigation>div::before,
-        .website-navigation>div::after {
-            background-image: url('assests/images/header/R_corner_of_the_selected.webp');
-        }
-
-        .website-navigation a::after,
-        .website-navigation>div::after {
-            transform: translate(-50%, -50%) scale(0.5) rotate(180deg);
-        }
-
-        .website-navigation>div:hover a::before {
-            opacity: 1;
-            top: -5px;
-            left: -5px;
-            transform: translate(0, 0) scale(1);
-        }
-
-        .website-navigation>div:hover a::after {
-            opacity: 1;
-            top: calc(100% - 10px);
-            left: calc(100% - 10px);
-            transform: translate(0, 0) scale(1) rotate(180deg);
-        }
-
-        .website-navigation>div:hover::before {
-            opacity: 1;
-            top: -5px;
-            left: calc(100% - 10px);
-            transform: translate(0, 0) scale(1);
-        }
-
-        .website-navigation>div:hover::after {
-            opacity: 1;
-            top: calc(100% - 10px);
-            left: -5px;
-            transform: translate(0, 0) scale(1) rotate(180deg);
-        }
-
-        /* ---------------------------------------------------------------------- CUBIC News section ----------------------------------------------------------------------- */
-        .CUBIC_news {
-            position: relative;
-            margin-bottom: 4rem;
-            margin-top: -3rem;
-        }
-
-        .CUBIC_news h1 {
-            font-size: 2.1rem;
-            color: rgb(0, 140, 255);
-            margin-bottom: 1rem;
-            text-align: center;
-            position: relative;
-            z-index: 5;
-        }
-
-        .latest-upload-wrapper {
-            position: relative;
-            width: 100vw;
-            margin-left: calc(50% - 50vw);
-            max-width: none;
-            overflow: hidden;
-        }
-
-        .latest-upload-wrapper img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        /* ---------------------------------------------------------------------- Swiper carousel section ----------------------------------------------------------------------- */
-        .swiper-section {
-            margin-top: -25vw;
-            margin-bottom: 4rem;
-            padding: 0 1rem;
-            max-width: 2000px;
-            margin-left: auto;
-            margin-right: auto;
-            position: relative;
-            z-index: 10;
-        }
-
-        .container.swiper {
-            position: relative;
-            width: 100%;
-            z-index: 0;
-            padding-top: 80px;
-            padding-bottom: 2.5rem;
-        }
-
-        .card-list .card-item {
-            height: auto;
-            padding: 0;
-        }
-
-        .card-list .card-item img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .card-list .video.thumbnail:hover {
-            transform: translateY(-10px);
-            transition: transform 0.3s;
-        }
-
-        .slider-wrapper .swiper-pagination-bullet {
-            background: #fff;
-            height: 15px;
-            width: 40px;
-            opacity: 0.5;
-            border-radius: 0%;
-        }
-
-        .slider-wrapper .swiper-pagination-bullet:hover {
-            opacity: 0.7;
-            border-radius: 0px;
-        }
-
-        .slider-wrapper .swiper-pagination-bullet-active {
-            opacity: 1;
-            border-radius: 1px;
-        }
-
-        /*---------------------------------------------------------------------------TEXT SECTIONS---------------------------------------------------------------------------------------*/
-        .Welcome,
-        .About-me {
-            margin-top: 4rem;
-            margin-bottom: 4rem;
-            padding: 0 1rem;
-            max-width: 900px;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
-        }
-
-        .Welcome h1,
-        .About-me h1 {
-            color: rgb(0, 140, 255);
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .Welcome p,
-        .About-me p {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            margin-bottom: 1rem;
-        }
-
-        footer {
-            background: rgb(21, 21, 21);
-            color: whitesmoke;
-            width: 100%;
-            padding: 1rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            flex-wrap: nowrap;
-            margin-top: auto;
-            position: relative;
-        }
-
-        .footer-text {
-            width: 100%;
-            text-align: center;
-            margin-right: 0;
-            margin-left: 0;
-        }
-
-        .version-link {
-            position: absolute;
-            right: 1.5rem;
-            bottom: 1rem;
-            text-align: right;
-        }
-
-        .version {
-            color: rgb(124, 124, 124);
-            margin-left: 0;
-            margin-top: 0;
-        }
-
-        a {
-            text-decoration: none;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #151515;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #555;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #888;
-        }
-
-        @media (max-width: 1024px) {
-            .header-content {
-                flex-wrap: wrap;
-                justify-content: center;
-                text-align: center;
-            }
-
-            .logo,
-            .social-icons {
-                margin: 0.5rem 0;
-                justify-content: center;
-            }
-
-            .logo {
-                width: 100%;
-            }
-
-            .social-icons {
-                width: 100%;
-                gap: 0.8rem;
-            }
-
-            .website-navigation {
-                justify-content: center;
-            }
-
-            .website-navigation h3 {
-                font-size: 0.8rem;
-            }
-
-            .website-navigation a {
-                padding: 0.3rem 0.6rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            html {
-                font-size: 16px;
-            }
-
-            .image img {
-                width: 50px;
-                height: 50px;
-            }
-
-            .logo-text {
-                font-size: 2.2rem;
-            }
-
-            .social-icons img {
-                width: 60px;
-                height: auto;
-                margin-left: 0.5rem;
-                margin-right: 0.5rem;
-            }
-
-            .CUBIC_news h1,
-            .Welcome h1,
-            .About-me h1 {
-                font-size: 2rem;
-            }
-
-            .Welcome p,
-            .About-me p {
-                font-size: 1rem;
-                line-height: 1.6;
-            }
-
-            .swiper-section {
-                margin-top: -25vw;
-            }
-
-            .main-video-overlay-text {
-                font-size: 1.5rem;
-                left: 5%;
-            }
-
-            footer {
-                flex-wrap: wrap;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                text-align: center;
-            }
-
-            .footer-text {
-                width: 100%;
-                text-align: center;
-                margin: 0.2rem 0;
-            }
-
-            .version-link {
-                position: static;
-                right: auto;
-                bottom: auto;
-                width: 100%;
-                text-align: center;
-                margin-top: 5px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            html {
-                font-size: 14px;
-            }
-
-            .image img {
-                width: 40px;
-                height: 40px;
-            }
-
-            .logo-text {
-                font-size: 1.8rem;
-            }
-
-            .social-icons img {
-                width: 50px;
-                height: auto;
-            }
-
-            .CUBIC_news h1,
-            .Welcome h1,
-            .About-me h1 {
-                font-size: 1.6rem;
-            }
-
-            .swiper-section {
-                margin-top: -40vw;
-            }
-
-            .slider-wrapper .swiper-pagination-bullet {
-                height: 10px;
-                width: 30px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="index_intro.css" id="main-css">
 </head>
 
 <body>
@@ -647,7 +26,7 @@
                     <span class="logo-text">CUBIC HUB</span>
                 </a>
             </div>
-            <div class="social-icons">
+            <div class="social-icons desktop-only">
                 <div class="Youtube">
                     <a href="https://www.youtube.com/channel/UCsM3kc7cmzJ92a3A3y2wunw" target="_blank">
                         <img src="assests/images/header/Youtube.webp" alt="(error) image not found">
@@ -711,159 +90,197 @@
 
         <div class="CUBIC_news">
             <h1>-New stuff-</h1>
-            <div class="latest-upload-wrapper">
-                <div class="Latest-Upload">
-                    <a href="HUB(error).html" target="_blank">
-                        <img src="assests/images/HUB_news/newest upload template.webp" alt="missing video thumbnail"
-                            class="Latest Thumbnail">
-                    </a>
-                </div>
+            <div class="latest-upload-wrapper" id="latest-upload-container">
             </div>
         </div>
 
-        <div class="swiper-section">
+        <div class="swiper-section scroll-trigger trigger-fade-down">
             <div class="container swiper">
                 <div class="slider-wrapper">
-                    <div class="card-list swiper-wrapper">
-                        <div class="card-item swiper-slide">
-                            <a href="https://www.youtube.com/watch?v=N_jc959VWts" target="_blank">
-                                <img src="assests/images/HUB_news/new videos/1vid.webp" alt="missing video thumbnail"
-                                    class="video thumbnail">
-                            </a>
-                        </div>
-
-                        <div class="card-item swiper-slide">
-                            <a href="https://www.youtube.com/watch?v=JK7nMereCeU" target="_blank">
-                                <img src="assests/images/HUB_news/new videos/2vid.webp" alt="missing video thumbnail"
-                                    class="video thumbnail">
-                            </a>
-                        </div>
-
-                        <div class="card-item swiper-slide">
-                            <a href="https://www.youtube.com/watch?v=jkvfHhqGFh4" target="_blank">
-                                <img src="assests/images/HUB_news/new videos/3vid.webp" alt="missing video thumbnail"
-                                    class="video thumbnail">
-                            </a>
-                        </div>
-
-                        <div class="card-item swiper-slide">
-                            <a href="https://www.youtube.com/watch?v=GuN7_KK3fcQ" target="_blank">
-                                <img src="assests/images/HUB_news/new videos/4vid.webp" alt="missing video thumbnail"
-                                    class="video thumbnail">
-                            </a>
-                        </div>
-
-                        <div class="card-item swiper-slide">
-                            <a href="https://www.youtube.com/watch?v=WGzpdqeCVvc" target="_blank">
-                                <img src="assests/images/HUB_news/new videos/5vid.webp" alt="missing video thumbnail"
-                                    class="video thumbnail">
-                            </a>
-                        </div>
-
-                        <div class="card-item swiper-slide">
-                            <a href="https://www.youtube.com/watch?v=DjXiNB0dOcQ" target="_blank">
-                                <img src="assests/images/HUB_news/new videos/6vid.webp" alt="missing video thumbnail"
-                                    class="video thumbnail">
-                            </a>
-                        </div>
-
-                        <div class="card-item swiper-slide">
-                            <a href="https://www.youtube.com/watch?v=XlnPeHDgcQk" target="_blank">
-                                <img src="assests/images/HUB_news/new videos/7vid.webp" alt="missing video thumbnail"
-                                    class="video thumbnail">
-                            </a>
-                        </div>
-
-                        <div class="card-item swiper-slide">
-                            <a href="https://www.youtube.com/watch?v=B90hc-aOx7M" target="_blank">
-                                <img src="assests/images/HUB_news/new videos/8vid.webp" alt="missing video thumbnail"
-                                    class="video thumbnail">
-                            </a>
-                        </div>
-
+                    <div class="card-list swiper-wrapper" id="swiper-container">
                     </div>
                     <div class="swiper-pagination"></div>
                 </div>
             </div>
         </div>
 
-        <div class="Welcome">
-            <h1>-Welcome to CUBIC HUB-</h1>
-            <p>Welcome to CUBIC HUB, the centralized home for all my creative endeavors. Here, you'll find a
-                bunch of cool stuff that i made, conveniently brought for YOU together in one place. Whether you're
-                looking for sick shows, cool movies, insane comics, innovative mods , games and programs, or some random
-                miscellaneous projects of mine , CUBIC HUB has it all.
-            </p>
-            <p>The goal of this website is to provide easy access to all of my works, ensuring that YOU can enjoy
-                and
-                explore my work effortlessly. From the latest uploads to classic favorites, this platform is
-                designed to be YOUR go-to platforme for all things made by YOUR boy CUBIC.
-            </p>
-            <p>Please note that CUBIC HUB is still a work in progress. I'm constantly updating and enhancing the
-                site to ensure the best possible experience for YOU My visitors . YOUR feedback and patience are
-                greatly appreciated as I continue to develop and improve the platform.
-            </p>
-            <p>Thank YOU for visiting CUBIC HUB. Stay tuned for more exciting updates and new epic content! :D</p>
+        <div class="welcome-section">
+            <div class="horizontal-line-container scroll-trigger trigger-lines"
+                style="margin-top: 0; margin-bottom: 2rem;">
+                <div class="blue-line-segment left" style="width: auto; flex-grow: 1;"></div>
+                <span class="line-text" style="font-size: 2.1rem; text-transform: uppercase;">Welcome to CUBIC
+                    HUB</span>
+                <div class="blue-line-segment right" style="flex-grow: 1;"></div>
+            </div>
+
+            <div class="welcome-content scroll-trigger trigger-fade-down">
+                <p>Welcome to CUBIC HUB, the centralized home for all my creative endeavors. Here, you'll find a
+                    comprehensive
+                    collection of everything I create, conveniently brought together in one place. Whether you're
+                    looking
+                    for
+                    shows, movies, comics, mods, games, programs, or miscellaneous projects, CUBIC HUB has it all.</p>
+                <p>The goal of this website is to provide easy access to all of my content, ensuring you can enjoy and
+                    explore my work effortlessly. From the latest uploads to classic favorites, this platform is
+                    designed to
+                    be your go-to resource for all things made possible with the hard work of the TEAM.</p>
+                <p>Please note that CUBIC HUB is still a work in progress. The TEAM are constantly updating and
+                    enhancing
+                    the site to ensure the best possible experience for you Visitors. Your feedback and patience are
+                    greatly
+                    appreciated as I continue to develop and improve the platform.</p>
+                <p>Thank you for visiting CUBIC HUB. Stay tuned for more exciting updates and new epic content!
+                    <br><br>
+                    <span
+                        style="display: block; text-align: right; font-family: 'Minecraft', sans-serif; color: gray; opacity: 0.8;">-The
+                        CUBIC TEAM</span>
+                </p>
+            </div>
         </div>
 
-        <div class="About-me">
-            <h1>-About me-</h1>
-            <p>
-                YO Welcome to my creative world! I am CUBIC the mind behind CUBIC HUB, a place where all my artistic and
-                technical projects come to life. With a passion for storytelling and a love for technology, I have
-                dedicated myself to creating a diverse range of content, from shows and movies to comics, games,
-                and more.
-            </p>
-            <p>
-                Driven by a commitment of continuous growth and innovation. I thrive on pushing the boundaries
-                of what's possible and bringing unique, engaging and awesome experiences to my audience.
-            </p>
-            <P>
-                Thanks for checking out my work. YOUR support means a LOT to me as I continue to grow and
-                develop my projects.
-            </P>
+        <div class="horizontal-line-container scroll-trigger trigger-lines">
+            <div class="blue-line-segment left"></div>
+            <span class="line-text">Milestones</span>
+            <div class="blue-line-segment right"></div>
         </div>
+
+        <div class="milestone-wrapper scroll-trigger trigger-fade-down">
+            <p id="progress-status">Loading subscriber count...</p>
+
+            <div class="progress-bar-container-horizontal">
+                <div class="progress-bar-fill-horizontal" id="sub-progress"></div>
+            </div>
+
+            <svg class="lines-svg" id="milestone-lines"></svg>
+
+            <div id="milestone-content"></div>
+
+            <div class="subscribe-wrapper">
+                <a href="https://www.youtube.com/channel/UCsM3kc7cmzJ92a3A3y2wunw?sub_confirmation=1" target="_blank"
+                    class="subscribe-cta">help us reach these Goals :]</a>
+            </div>
+
+        </div>
+
+        <div class="horizontal-line-container scroll-trigger trigger-lines">
+            <div class="blue-line-segment left"></div>
+            <span class="line-text">Meet the TEAM</span>
+            <div class="blue-line-segment right"></div>
+        </div>
+
+        <div class="team-section">
+
+            <div class="team-member scroll-trigger trigger-team">
+                <div class="member-image">
+                    <img src="assests/images/The_TEAM/CUBIC.webp" alt="CUBIC">
+                </div>
+                <div class="member-content">
+                    <h2 class="member-name color-blue">CUBIC</h2>
+                    <p class="member-bio">Hi I'm the mind behind the operation, managing all of this excess energy and
+                        creativity into something that not only I can enjoy but also for you outsiders, why you ask?
+                        HAHAHA it's simple really $MONEY$, anyways as the one managing these Projects time is also part
+                        of
+                        the job, I'm still trying to get the hang of it, so if any delays come to these projects you
+                        know who to blame.</p>
+                </div>
+            </div>
+
+            <div class="team-member scroll-trigger trigger-team">
+                <div class="member-image">
+                    <img src="assests/images/The_TEAM/Bubby.webp" alt="Bubby">
+                </div>
+                <div class="member-content">
+                    <h2 class="member-name color-cyan">Bubby</h2>
+                    <p class="member-bio">Yo I'm the enginner, the Developer, the Scientist, anything tech or science
+                        related is my playing field so if you see anything tech related here it was either asked for me
+                        to be put
+                        here by CUBIC, asked to be made here for you outsiders by CUBIC, or maybe in the future made for
+                        you
+                        outsider in exchange for money so that i can make even more cool shit... which was also asked by
+                        CUBIC.</p>
+                </div>
+            </div>
+
+            <div class="team-member scroll-trigger trigger-team">
+                <div class="member-image">
+                    <img src="assests/images/The_TEAM/Steve.webp" alt="Steve">
+                </div>
+                <div class="member-content">
+                    <h2 class="member-name color-red">Steve</h2>
+                    <p class="member-bio">hey there outsider I'm the creative mind of this TEAM, most of everything you
+                        see here was made by me, animations, assets, stories, 3D Models, even the design of this
+                        website, so if you like what you see please consider subscribing to the channel as that will
+                        help me find translating all i made for you to watch worth it :]</p>
+                </div>
+            </div>
+
+            <div class="team-member scroll-trigger trigger-team">
+                <div class="member-image">
+                    <img src="assests/images/The_TEAM/Player1.webp" alt="Player1">
+                </div>
+                <div class="member-content">
+                    <h2 class="member-name color-split">Player1</h2>
+                    <p class="member-bio">I usually just play videogames but for some reason they introduced me into the
+                        TEAM, so i made DEADLINE or atleast helped design some aspects of the gameplay, I even got to
+                        voice act the MC, now I'm working on a new show on the channel called "gaming with Player1"....
+                        it's a work in progress.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="closing-brand scroll-trigger trigger-brand">
+            <h3>This is The</h3>
+            <div class="closing-brand-horizontal">
+                <h1>CUBIC</h1>
+                <img src="assests/images/LOGO.webp" alt="CUBIC Logo">
+                <h2>TEAM</h2>
+            </div>
+        </div>
+
+        <div class="mobile-social-container scroll-trigger trigger-fade-down">
+            <div class="social-icons mobile-only">
+                <div class="Youtube">
+                    <a href="https://www.youtube.com/channel/UCsM3kc7cmzJ92a3A3y2wunw" target="_blank">
+                        <img src="assests/images/Random/Youtube.webp" alt="Youtube">
+                    </a>
+                </div>
+                <div class="Fiverr">
+                    <a href="HUB(error).html">
+                        <img src="assests/images/Random/Fiverr.webp" alt="Fiverr">
+                    </a>
+                </div>
+                <div class="Patreon">
+                    <a href="HUB(error).html" target="_blank">
+                        <img src="assests/images/Random/Patreon.webp" alt="Patreon">
+                    </a>
+                </div>
+                <div class="Discord">
+                    <a href="HUB(error).html" target="_blank">
+                        <img src="assests/images/Random/Discord.webp" alt="Discord">
+                    </a>
+                </div>
+                <div class="Paypal">
+                    <a href="https://www.paypal.com/paypalme/TheRealCUBIC?country.x=MA&locale.x=en_US" target="_blank">
+                        <img src="assests/images/Random/Paypal_me.webp" alt="Paypal">
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </main>
 
-    <footer>
+    <footer class="scroll-trigger trigger-fade-down">
         <p class="footer-text">&copy; 2024 CUBIC STUDIO. All rights reserved.</p>
         <a class="version-link"
             href="javascript:var KICKASSVERSION='2.0';var s = document.createElement('script');s.type='text/javascript';document.body.appendChild(s);s.src='//hi.kickassapp.com/kickass.js';void(0);">
-            <p class="version">Alpha E010825</p>
+            <p class="version">Alpha F121425</p>
         </a>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-    <script>
-        const swiper = new Swiper('.slider-wrapper', {
-            loop: false,
-            spaceBetween: 20,
-
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
-
-            breakpoints: {
-                0: {
-                    slidesPerView: 2
-                },
-                480: {
-                    slidesPerView: 3
-                },
-                768: {
-                    slidesPerView: 4
-                },
-                1024: {
-                    slidesPerView: 4
-                },
-                1280: {
-                    slidesPerView: 4
-                }
-            }
-        });
-    </script>
+    <script src="index.js"></script>
 </body>
 <!-- Bubby Was Here -->
 

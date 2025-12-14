@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="icon" href="assests/images/favicon.webp" type="image/x-icon">
+    <title>CUBIC READER</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="javascript_dependencies/Re_alarm/Tailwind.js"></script>
+    <style>
+        body {
+            background-color: #151515;
+            color: ghostwhite;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        #reader-app {
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0;
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #comic-scroll-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            flex-grow: 1;
+            min-height: 60vh;
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        #comic-scroll-container.center-view {
+            justify-content: center;
+        }
+
+        .comic-page-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            object-fit: cover;
+            background-color: #2b3544;
+        }
+
+        .loading-message {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            color: #60a5fa;
+            font-weight: 500;
+        }
+
+        .error-container {
+            position: relative;
+            padding: 2rem;
+            max-width: 80%;
+            background: rgba(255, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+
+        .error-message {
+            text-align: center;
+            color: #ef4444;
+        }
+
+        .error-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: #ef4444;
+            border-style: solid;
+        }
+
+        .corner-top-left {
+            top: 0;
+            left: 0;
+            border-width: 3px 0 0 3px;
+        }
+
+        .corner-top-right {
+            top: 0;
+            right: 0;
+            border-width: 3px 3px 0 0;
+        }
+
+        .corner-bottom-left {
+            bottom: 0;
+            left: 0;
+            border-width: 0 0 3px 3px;
+        }
+
+        .corner-bottom-right {
+            bottom: 0;
+            right: 0;
+            border-width: 0 3px 3px 0;
+        }
+
+        .end-message {
+            text-align: center;
+            padding: 3rem;
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        footer {
+            background: rgb(21, 21, 21);
+            color: whitesmoke;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            flex-wrap: nowrap;
+            margin-top: auto;
+            position: relative;
+            border-top: 1px solid #333;
+        }
+
+        .footer-text {
+            width: 100%;
+            text-align: center;
+            margin-right: 0;
+            margin-left: 0;
+        }
+
+        .version-link {
+            position: absolute;
+            right: 1.5rem;
+            bottom: 1rem;
+            text-align: right;
+        }
+
+        .version {
+            color: rgb(124, 124, 124);
+            margin-left: 0;
+            margin-top: 0;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #151515;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+
+        @media (max-width: 768px) {
+            footer {
+                flex-wrap: wrap;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+
+            .footer-text {
+                width: 100%;
+                text-align: center;
+                margin: 0.2rem 0;
+            }
+
+            .version-link {
+                position: static;
+                right: auto;
+                bottom: auto;
+                width: 100%;
+                text-align: center;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="reader-app">
+        <div id="comic-scroll-container" class="center-view">
+            <div id="status-indicator" class="loading-message">Initializing Reader...</div>
+        </div>
+    </div>
+
+    <footer>
+        <p class="footer-text">&copy; 2024 CUBIC STUDIO. All rights reserved.</p>
+        <a class="version-link"
+            href="javascript:var KICKASSVERSION='2.0';var s = document.createElement('script');s.type='text/javascript';document.body.appendChild(s);s.src='//hi.kickassapp.com/kickass.js';void(0);">
+            <p class="version">Alpha F121425</p>
+        </a>
+    </footer>
+
+    <script>
+        const scrollContainer = document.getElementById('comic-scroll-container');
+        const statusIndicator = document.getElementById('status-indicator');
+
+        const SUPPORTED_EXTENSIONS = ['webp', 'WEBP', 'jpg', 'JPG', 'jpeg', 'JPEG', 'png', 'PNG', 'gif', 'GIF'];
+
+        const MAX_PAGES_TO_CHECK = 99;
+
+        let readerBaseTitle = 'CUBIC READER';
+
+        function getComicFolderFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const path = urlParams.get('path');
+
+            if (path) {
+                return decodeURIComponent(path).trim();
+            }
+            return null;
+        }
+
+        function getFilenamesToTry(pageNumber) {
+            const formatted = pageNumber.toString().padStart(2, '0');
+            const raw = pageNumber.toString();
+            const prefixes = [];
+
+            prefixes.push(formatted);
+            if (formatted !== raw) {
+                prefixes.push(raw);
+            }
+
+            return prefixes;
+        }
+
+        function loadPageSequentially(folderPath, pageNumber) {
+
+            if (pageNumber > MAX_PAGES_TO_CHECK) {
+                const endDiv = document.createElement('div');
+                endDiv.className = 'end-message';
+                endDiv.innerHTML = "— Maximum Pages Reached —";
+                scrollContainer.appendChild(endDiv);
+                console.log(`[Reader] Stopped at max limit (${MAX_PAGES_TO_CHECK}).`);
+                return;
+            }
+
+            const filenames = getFilenamesToTry(pageNumber);
+
+            const urlsToTry = [];
+            const cleanPath = folderPath.replace(/\/$/, '');
+
+            for (const filename of filenames) {
+                for (const ext of SUPPORTED_EXTENSIONS) {
+                    urlsToTry.push(`${cleanPath}/${filename}.${ext}`);
+                }
+            }
+
+            tryNextURL(folderPath, pageNumber, 0, urlsToTry);
+        }
+
+        function tryNextURL(folderPath, pageNumber, urlIndex, urlsToTry) {
+
+            if (urlIndex >= urlsToTry.length) {
+                handlePageLoadFailure(folderPath, pageNumber, urlsToTry);
+                return;
+            }
+
+            const imageUrl = urlsToTry[urlIndex];
+            const img = new Image();
+
+            img.onload = function () {
+
+                if (pageNumber === 1) {
+                    if (statusIndicator) {
+                        statusIndicator.style.display = 'none';
+                    }
+                    scrollContainer.classList.remove('center-view');
+                }
+
+                img.className = 'comic-page-image';
+                img.alt = `Page ${pageNumber}`;
+
+                scrollContainer.appendChild(img);
+
+                loadPageSequentially(folderPath, pageNumber + 1);
+            };
+
+            img.onerror = function () {
+                tryNextURL(folderPath, pageNumber, urlIndex + 1, urlsToTry);
+            };
+
+            img.src = imageUrl;
+        }
+
+        function handlePageLoadFailure(folderPath, pageNumber, urlsTried) {
+            if (pageNumber === 1) {
+                scrollContainer.classList.add('center-view');
+
+                document.title = readerBaseTitle;
+
+                if (statusIndicator) {
+                    statusIndicator.style.display = 'block';
+                    statusIndicator.innerHTML = `
+                        <div class="error-container">
+                            <div class="error-corner corner-top-left"></div>
+                            <div class="error-corner corner-top-right"></div>
+                            <div class="error-corner corner-bottom-left"></div>
+                            <div class="error-corner corner-bottom-right"></div>
+                            <div class="error-message">
+                                <p class="font-bold text-xl mb-2">Chapter Not Found</p>
+                                <p class="text-sm opacity-75">Could not load Pages</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                const endDiv = document.createElement('div');
+                endDiv.className = 'end-message';
+                endDiv.innerHTML = "— To be continued —";
+                scrollContainer.appendChild(endDiv);
+                console.log(`[Reader] Stopped at page ${pageNumber} (End of directory).`);
+            }
+        }
+
+        window.onload = function () {
+            const comicPath = getComicFolderFromURL();
+
+            if (comicPath) {
+                const cleanPath = comicPath.replace(/\/$/, '');
+                const parts = cleanPath.split('/').filter(p => p.length > 0);
+
+                const secondFolder = parts[1] || '';
+                const thirdFolder = parts[2] || '';
+
+                if (secondFolder && thirdFolder) {
+                    readerBaseTitle = `${secondFolder.replace(/_/g, ' ')} - ${thirdFolder.replace(/_/g, ' ')}`;
+                } else if (secondFolder) {
+                    readerBaseTitle = `${secondFolder.replace(/_/g, ' ')}`;
+                } else {
+                    readerBaseTitle = 'CUBIC READER';
+                }
+
+                document.title = readerBaseTitle;
+
+                statusIndicator.innerText = `Loading ${readerBaseTitle.split(' - ')[1] || 'Chapter'}...`;
+                loadPageSequentially(comicPath, 1);
+            } else {
+                scrollContainer.classList.add('center-view');
+                statusIndicator.innerHTML = `
+                    <div class="error-container">
+                        <div class="error-corner corner-top-left"></div>
+                        <div class="error-corner corner-top-right"></div>
+                        <div class="error-corner corner-bottom-left"></div>
+                        <div class="error-corner corner-bottom-right"></div>
+                        <div class="error-message">
+                            <p class="font-bold text-lg">No Comic Path Selected</p>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+    </script>
+
+</body>
+<!-- Bubby Was Here -->
+
+</html>

@@ -3,10 +3,17 @@
 
 <head>
     <link rel="icon" href="assests/images/favicon.webp" type="image/x-icon">
-    <title>CUBIC Comics</title>
+    <title>SONIC SPIRIT</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        @font-face {
+            font-family: 'NiseSegaSonic';
+            src: url('assests/fonts/NiseSegaSonic.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -76,6 +83,23 @@
             flex-direction: row;
             align-items: flex-start;
             text-align: left;
+            position: relative;
+        }
+
+        .Event {
+            position: absolute;
+            right: 1%;
+            top: 45%;
+            transform: translateY(-50%);
+            font-size: 100rem;
+            font-family: 'Arial', sans-serif;
+            font-weight: normal;
+            color: rgb(39, 39, 255);
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+            user-select: none;
+            line-height: 1;
         }
 
         .disclaimer-text {
@@ -92,8 +116,8 @@
 
         .Chapter-box-wrapper {
             position: relative;
-            width: 50%;
-            margin-left: 2rem;
+            width: 58%;
+            margin-left: 0;
             padding: 0;
             background-color: transparent;
             display: flex;
@@ -156,7 +180,7 @@
         .Chapter-button {
             padding: 50px;
             border: none;
-            width: 105%;
+            width: 100%;
             text-align: center;
             display: block;
             text-decoration: none;
@@ -168,6 +192,8 @@
             font-size: 3em;
             white-space: nowrap;
             overflow: hidden;
+            position: relative;
+            transition: background-color 0.4s ease;
         }
 
         .Chapter-button:nth-child(odd) {
@@ -183,13 +209,164 @@
             cursor: pointer;
         }
 
+        .level-start-button {
+            padding: 0;
+            min-height: 150px;
+            background-color: #000000;
+        }
+
+        .level-start-button .button-bg-image {
+            position: absolute;
+            left: 50px;
+            top: 0;
+            height: 100%;
+            width: auto;
+            object-fit: cover;
+            object-position: left;
+            z-index: 1;
+            transition: width 0.4s ease, opacity 0.4s ease, left 0.4s ease;
+        }
+
+        .level-start-button .button-text-container {
+            z-index: 2;
+            position: absolute;
+            right: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            transition: transform 0.4s ease;
+        }
+
+        .level-start-button .main-text {
+            font-family: 'NiseSegaSonic', 'Arial', sans-serif;
+            font-size: 0.7em;
+            z-index: 2;
+        }
+
+        .level-start-button .sub-text {
+            color: red;
+            font-size: 0.4em;
+            margin-top: 0.2rem;
+        }
+
+        .level-start-button:hover .button-bg-image {
+            width: 100%;
+            opacity: 0.4;
+            left: 0;
+        }
+
+        .level-start-button:hover .button-text-container {
+            transform: translateY(-50%) scale(1.1);
+        }
+
         .main-content-wrapper {
             display: flex;
             flex-direction: column;
             flex: 1;
             width: 100%;
-            margin-left: 0;
+            margin-left: 40px;
             margin-right: 0;
+            z-index: 1;
+        }
+
+        .comic-details-row {
+            display: flex;
+            gap: 2rem;
+            width: 100%;
+            margin-top: 1.5rem;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        .Chapter-box-wrapper {
+            order: 1;
+        }
+
+        .Comic-cover-wrapper {
+            order: 2;
+        }
+
+
+        .Comic-cover-wrapper {
+            position: sticky;
+            top: 10px;
+            max-height: 100vh;
+            overflow-y: auto;
+            width: 40%;
+            padding: 0;
+            background-color: transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            text-align: left;
+            font-size: 0.95em;
+            min-height: 150px;
+            box-shadow: none;
+            gap: 1.5rem;
+        }
+
+        .comic-image-box {
+            position: relative;
+            width: 100%;
+            padding: 20px;
+            background-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: none;
+        }
+
+        .cover-image-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 0;
+            overflow: visible;
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .cover-image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        .comic-description-box {
+            width: 100%;
+            padding: 20px;
+            background-color: transparent;
+            box-shadow: none;
+            border-radius: 3px;
+            text-align: left;
+        }
+
+        .cover-description {
+            width: 100%;
+            text-align: left;
+            font-size: 1.1em;
+            line-height: 1.4;
+        }
+
+        .cover-description-title {
+            color: ghostwhite;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-size: 3em;
+            text-align: center;
+        }
+
+        .blue-text {
+            color: #00aaff;
+            display: inline;
+            margin-top: 0;
+            background-color: transparent;
+            padding: 0;
+            border-left: none;
         }
 
         .website-navigation {
@@ -215,6 +392,7 @@
 
         .website-navigation h3 {
             font-size: 0.9rem;
+            margin: 0;
         }
 
         .website-navigation a {
@@ -368,15 +546,38 @@
                 padding: 0.3rem 0.6rem;
             }
 
+            .comic-details-row {
+                flex-direction: column;
+                gap: 1.5rem;
+                margin-top: 1rem;
+            }
+
             .Chapter-box-wrapper {
-                width: 95%;
-                margin-left: 4%;
-                margin-top: 1.5rem;
+                order: unset;
+            }
+
+            .Comic-cover-wrapper {
+                order: unset;
+                position: static;
+                top: auto;
+                max-height: none;
+                overflow-y: visible;
+            }
+
+            .Chapter-box-wrapper,
+            .Comic-cover-wrapper {
+                width: 100%;
+                margin: 0;
             }
 
             footer {
                 min-height: 100px;
             }
+
+            .main-content-wrapper {
+                margin-left: 0;
+            }
+
         }
 
         @media (max-width: 768px) {
@@ -405,28 +606,20 @@
                 border-radius: 0 0 5px 5px;
             }
 
-            .disclaimer-text {
-                white-space: nowrap;
-                writing-mode: vertical-lr;
-                text-orientation: mixed;
-                flex-shrink: 0;
-                padding-top: 10px;
-                padding-bottom: 2rem;
-                font-size: 60%;
-                margin-top: 0;
-                text-align: left;
-            }
-
             .main-content-wrapper {
                 width: 100%;
                 margin-left: 0;
                 margin-right: 0;
             }
 
-            .Chapter-box-wrapper {
-                width: 95%;
-                margin-left: 4%;
-                margin-top: 1.5rem;
+            .Chapter-box-wrapper,
+            .Comic-cover-wrapper {
+                width: 100%;
+                margin: 0;
+                position: static;
+                top: auto;
+                max-height: none;
+                overflow-y: visible;
             }
 
             footer {
@@ -508,7 +701,7 @@
                         <h3><a href="HUB(error).html">mods</a></h3>
                     </div>
                     <div class="games">
-                        <h3><a href="Blank Canvas.html">games</a></h3>
+                        <h3><a href="Games.html">games</a></h3>
                     </div>
                     <div class="programs">
                         <h3><a href="Re-alarm.html">programs</a></h3>
@@ -520,32 +713,68 @@
                         <h3><a href="HUB(error).html">CUBIC history</a></h3>
                     </div>
                 </div>
-                <div class="Chapter-box-wrapper">
-                    <div class="corner corner-top-left"></div>
-                    <div class="corner corner-top-right"></div>
-                    <div class="Chapter-box-inner">
-                        <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
-                        <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
-                        <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
-                        <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
-                        <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
-                        <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
-                        <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
-                        <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
-                        <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
-                        <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
+
+                <div class="comic-details-row">
+                    <div class="Comic-cover-wrapper">
+                        <div class="comic-image-box">
+                            <div class="cover-image-container">
+                                <div class="corner corner-top-left"></div>
+                                <div class="corner corner-top-right"></div>
+                                <div class="corner corner-bottom-left"></div>
+                                <div class="corner corner-bottom-right"></div>
+
+                                <img src="assests/images/CUBIC Comics/Comic Covers/SONIC SPIRIT Cover.webp"
+                                    alt="SONIC SPIRIT Comic Cover">
+                            </div>
+                        </div>
+
+                        <div class="comic-description-box">
+                            <div class="cover-description">
+                                <p class="cover-description-title">-Description:</p>
+                                <p>SONIC SPIRIT is a story about the feelings of losing dear friends, and how it goes to
+                                    show that even the most patient people can have limits. <span class="blue-text">I
+                                        WILL NEVER FORGIVE YOU</span></p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="corner corner-bottom-left"></div>
-                    <div class="corner corner-bottom-right"></div>
+
+                    <div class="Chapter-box-wrapper">
+                        <div class="corner corner-top-left"></div>
+                        <div class="corner corner-top-right"></div>
+                        <div class="Chapter-box-inner">
+                            <a href="CUBIC_READER.html?path=CUBIC_Reader/SONIC_SPIRIT/Level_1"
+                                class="Chapter-button level-start-button">
+                                <img src="assests/images/CUBIC Comics/SONIC_SPIRIT/SONIC_SPIRIT_LEVEL1_Cover.webp"
+                                    alt="Sonic Spirit Cover" class="button-bg-image">
+                                <div class="button-text-container">
+                                    <span class="main-text">Level1: Start</span>
+                                    <span class="sub-text">And off you go</span>
+                                </div>
+                            </a>
+
+                            <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
+                            <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
+                            <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
+                            <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
+                            <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
+                            <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
+                            <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
+                            <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
+                            <a href="HUB(error).html" class="Chapter-button">COMING SOON</a>
+                        </div>
+                        <div class="corner corner-bottom-left"></div>
+                        <div class="corner corner-bottom-right"></div>
+                    </div>
                 </div>
             </div>
+            <div class="Event">9</div>
         </main>
     </div>
 
     <footer>
         <p class="footer-text">&copy; 2024 CUBIC STUDIO. All rights reserved.</p>
         <a class="version-link" href="hello.html">
-            <p class="version">Alpha E010825</p>
+            <p class="version">Alpha F121425</p>
         </a>
     </footer>
 
